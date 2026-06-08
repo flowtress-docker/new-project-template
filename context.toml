@@ -1,0 +1,68 @@
+# =============================================================================
+# CONTEXT ACQUISITION
+# =============================================================================
+# What the agent must discover/read before starting implementation.
+# All operations in this phase run in PARALLEL.
+# =============================================================================
+
+[preflight]
+mode = "PARALLEL"
+
+[[preflight.ops]]
+id = "CTX.1"
+action = "Verify git is available and repo is initialized"
+outcome = "git --version returns successfully. git status confirms we are in a repo."
+command = "git status && git branch -a"
+tool = "Bash"
+
+[[preflight.ops]]
+id = "CTX.2"
+action = "Read ARCHITECTURE.md for project conventions"
+outcome = "Understand existing branch topology rules and naming conventions before modifying anything."
+file = "ARCHITECTURE.md"
+tool = "Read"
+note = "May not exist yet — read if present, skip if absent."
+
+[[preflight.ops]]
+id = "CTX.3"
+action = "Glob for existing git hooks and scripts"
+outcome = "Identify any pre-existing hooks that may conflict with branch creation."
+pattern = "**/*.sh"
+tool = "Glob"
+
+[[preflight.ops]]
+id = "CTX.4"
+action = "Glob for existing branch documentation"
+outcome = "Find any existing naming convention docs that must be preserved or updated."
+pattern = ".github/*"
+tool = "Glob"
+
+[[preflight.ops]]
+id = "CTX.5"
+action = "Check GitHub CLI availability"
+outcome = "gh --version returns successfully. Agent knows whether it can automate GitHub operations."
+command = "gh --version || echo 'gh CLI not available'"
+tool = "Bash"
+
+[[preflight.ops]]
+id = "CTX.6"
+action = "Check current branch and working tree status"
+outcome = "Ensure repo is on main, working tree is clean, no uncommitted changes."
+command = "git status --porcelain && git rev-parse --abbrev-ref HEAD"
+tool = "Bash"
+
+# -----------------------------------------------------------------------------
+# REFERENCE CONTEXT (embedded, not searched)
+# -----------------------------------------------------------------------------
+[embedded.multirepo_strategy]
+dev_repo = "AI-agent accessible account. Active development with full branch topology."
+backup_repo = "Personal private account. Mirrors dev repo for safety."
+client_repo = "Deployment-only. Contains only main branch with deployed, containerized source code."
+
+[embedded.branch_lifecycle]
+rule = """
+1. context branch: gather context via interview Q&A. Demarcate into plans and specs as files.
+2. /plan/* branches: forked from context. Refine plans for a specific feature area.
+3. /spec/* branches: forked from /plan/*. Visualize specs before implementation. No code.
+4. impl/* branches: forked from /spec/*. Actual implementation of a confirmed spec.
+"""

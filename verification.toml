@@ -1,0 +1,86 @@
+# =============================================================================
+# VERIFICATION PLAN
+# =============================================================================
+# Automated and manual verification steps. Agents must pass ALL before
+# claiming the task is complete.
+# =============================================================================
+
+[[verify]]
+id = "V.1"
+name = "Standalone topology verifier"
+command = "./scripts/verify-topology.sh"
+expect = "Exit code 0"
+assertion = "All required branches exist and fork relationships are intact."
+
+[[verify]]
+id = "V.2"
+name = "Branch listing check"
+command = "git branch -a"
+expect = """
+main
+context
+/plan/front-end_hero
+/spec/front-end_hero
+impl/front-end_hero
+"""
+assertion = "All five branches exist locally."
+
+[[verify]]
+id = "V.3"
+name = "Fork relationship check — context"
+command = "git merge-base --is-ancestor main context"
+expect = "Exit code 0"
+assertion = "context branch is a descendant of main."
+
+[[verify]]
+id = "V.4"
+name = "Fork relationship check — /plan/*"
+command = "git merge-base --is-ancestor context /plan/front-end_hero"
+expect = "Exit code 0"
+assertion = "/plan/front-end_hero is a descendant of context."
+
+[[verify]]
+id = "V.5"
+name = "Fork relationship check — /spec/*"
+command = "git merge-base --is-ancestor /plan/front-end_hero /spec/front-end_hero"
+expect = "Exit code 0"
+assertion = "/spec/front-end_hero is a descendant of /plan/front-end_hero."
+
+[[verify]]
+id = "V.6"
+name = "Fork relationship check — impl/*"
+command = "git merge-base --is-ancestor /spec/front-end_hero impl/front-end_hero"
+expect = "Exit code 0"
+assertion = "impl/front-end_hero is a descendant of /spec/front-end_hero."
+
+[[verify]]
+id = "V.7"
+name = "new-feature.sh smoke test"
+command = "./scripts/new-feature.sh back-end/api"
+expect = "Exit code 0. Creates /plan/back-end_api, /spec/back-end_api, impl/back-end_api."
+assertion = "Feature chain creation script works for arbitrary feature paths."
+
+[[verify]]
+id = "V.8"
+name = "Idempotency check"
+command = "./scripts/init-branches.sh"
+expect = "Exit code 0. No errors. Output indicates branches already exist."
+assertion = "Bootstrap script is safe to run multiple times."
+
+[[verify]]
+id = "V.9"
+name = "No code on spec branches"
+command = "git ls-tree -r /spec/front-end_hero --name-only"
+expect = "No files with extensions: .ts, .js, .py, .go, .rs, .java, .rb"
+assertion = "Spec branches contain no implementation code files."
+
+[[verify]]
+id = "V.10"
+name = "README presence on all branches"
+command = """
+for branch in main context /plan/front-end_hero /spec/front-end_hero impl/front-end_hero; do
+  git show "$branch:README.md" -- >/dev/null 2>&1 || echo "MISSING: $branch"
+done
+"""
+expect = "No MISSING output."
+assertion = "Every branch has a README.md."

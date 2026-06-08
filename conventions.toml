@@ -1,0 +1,90 @@
+# =============================================================================
+# CONVENTIONS & CONSTRAINTS
+# =============================================================================
+# Rules, tool preferences, anti-patterns, and naming conventions that all
+# agents must follow when executing this task.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TOOL PREFERENCES
+# -----------------------------------------------------------------------------
+[tools]
+file_creation = "Write"
+file_editing = "Edit"
+code_search = "Grep"
+file_pattern_search = "Glob"
+file_reading = "Read"
+git_operations = "Bash"
+script_execution = "Bash"
+
+[tools.avoid]
+"bash grep" = "Use Grep tool instead"
+"cat/head/tail" = "Use Read tool instead"
+"find/ls" = "Use Glob tool instead"
+"echo/heredoc for file creation" = "Use Write tool instead"
+
+# -----------------------------------------------------------------------------
+# ANTI-PATTERNS
+# -----------------------------------------------------------------------------
+[[antipatterns]]
+rule = "No project code in template"
+reason = "This is a pure topology template. No application source code (React components, API routes, etc.)."
+
+[[antipatterns]]
+rule = "No git worktree for branch creation"
+reason = "Use git branch and git checkout -b. Worktrees add unnecessary complexity for template setup."
+
+[[antipatterns]]
+rule = "No embedded secrets"
+reason = "No tokens, API keys, or environment-specific values anywhere in the template."
+
+[[antipatterns]]
+rule = "No interactive scripts (unless intentional)"
+reason = "new-feature.sh and init-branches.sh should be automation-first. Interactive prompts only where essential."
+
+[[antipatterns]]
+rule = "Keep READMEs concise"
+reason = "One paragraph per README explaining the branch's role. No essays."
+
+[[antipatterns]]
+rule = "No over-engineering"
+reason = "Implement what's specified. Don't add 'helpful' extras like CI configs, Dockerfiles, or framework scaffolds."
+
+[[antipatterns]]
+rule = "No comments on code you didn't change"
+reason = "Standard rule. Only comment on files being created or modified."
+
+# -----------------------------------------------------------------------------
+# BRANCH NAMING CONVENTIONS
+# -----------------------------------------------------------------------------
+[naming.prefixes]
+plan = { pattern = "/plan/<feature>", example = "/plan/front-end_hero", description = "Feature planning. Forked from context." }
+spec = { pattern = "/spec/<feature>", example = "/spec/front-end_hero", description = "Feature specification. Forked from /plan/<feature>." }
+impl = { pattern = "impl/<feature>", example = "impl/front-end_hero", description = "Feature implementation. Forked from /spec/<feature>." }
+
+[naming.rules]
+path_to_underscore = "Feature paths use underscores. E.g., front-end/hero → front-end_hero"
+no_slashes_in_branch = "Branch names use underscores for hierarchy. Slashes in feature paths are converted."
+exact_feature_match = "/plan/<X>, /spec/<X>, impl/<X> must use identical <X> for the same feature."
+
+# -----------------------------------------------------------------------------
+# SCRIPT CONVENTIONS
+# -----------------------------------------------------------------------------
+[scripts]
+language = "bash"
+shebang = "#!/usr/bin/env bash"
+safety_flags = "set -euo pipefail"
+idempotency = "All scripts check if target already exists before creating."
+exit_codes = "0 = success, 1 = error with message to stderr"
+
+# -----------------------------------------------------------------------------
+# COMMIT CONVENTIONS
+# -----------------------------------------------------------------------------
+[commits]
+style = "conventional commits"
+examples = [
+    "feat: template scaffolding — README, ARCHITECTURE, init script skeleton",
+    "feat: implement branch creation logic in init-branches.sh",
+    "feat: helper scripts, naming convention docs, verification script",
+    "chore: add .gitignore",
+]

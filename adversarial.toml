@@ -1,0 +1,146 @@
+# =============================================================================
+# ADVERSARIAL AGENT PROMPT
+# =============================================================================
+# Pattern: Executor + Verifier (from flowtress-docker/context)
+# Two parallel agents iterate until the Reviewer approves.
+# =============================================================================
+
+[meta]
+pattern = "Executor + Verifier"
+source = "flowtress-docker/context/templates/adversarial-agents.html"
+applies_to = "Implementation"
+version = "2.0.0"
+
+# -----------------------------------------------------------------------------
+# ORCHESTRATOR INSTRUCTIONS
+# -----------------------------------------------------------------------------
+[orchestrator]
+instruction = """
+Set up two parallel agents for this implementation task. The verifier is
+blocked until the executor produces a first draft. They iterate until the
+Reviewer approves all verification checks.
+"""
+
+# -----------------------------------------------------------------------------
+# TASK DEFINITION (shared between agents)
+# -----------------------------------------------------------------------------
+[task]
+summary = "Implement a GitHub repository template that automates a recurring branch topology: main → context → /plan/* → /spec/* → impl/*"
+spec_files = [
+    "prompt/topology.toml",
+    "prompt/execution.toml",
+    "prompt/conventions.toml",
+    "prompt/verification.toml",
+]
+
+# -----------------------------------------------------------------------------
+# AGENT 1 — IMPLEMENTER
+# -----------------------------------------------------------------------------
+[implementer]
+name = "Implementer"
+role = "Executor — performs the actual work"
+blocked_until = "none"
+
+[implementer.responsibilities]
+primary = [
+    "Read prompt/topology.toml to understand the full branch topology",
+    "Read prompt/execution.toml for the ordered phase plan",
+    "Read prompt/conventions.toml for tool preferences and anti-patterns",
+    "Implement Phase A: Create README.md, ARCHITECTURE.md, .gitignore on main",
+    "Implement Phase B: Build init-branches.sh with all branch creation logic",
+    "Implement Phase C: Create new-feature.sh, verify-topology.sh, .github/BRANCH_NAMING.md",
+    "Implement Phase D: Push all branches, mark as GitHub template",
+]
+
+[implementer.interaction]
+respond_to_reviewer_feedback = true
+fix_issues_promptly = true
+ask_clarifying_questions = "Only when the spec is ambiguous or contradictory"
+
+[implementer.constraints]
+must_follow = [
+    "conventions.toml anti-patterns (no project code, no worktrees, no secrets)",
+    "conventions.toml naming rules (/plan/*, /spec/*, impl/* strict matching)",
+    "conventions.toml script conventions (set -euo pipefail, idempotency)",
+]
+must_not = [
+    "Add features not specified in topology.toml or execution.toml",
+    "Over-engineer — implement what's requested, nothing more",
+    "Create abstractions for one-time operations",
+    "Add comments to code you didn't change",
+]
+
+# -----------------------------------------------------------------------------
+# AGENT 2 — REVIEWER
+# -----------------------------------------------------------------------------
+[reviewer]
+name = "Reviewer"
+role = "Verifier — critically analyzes the implementer's output for errors or gaps"
+blocked_until = "Implementer produces first draft"
+
+[reviewer.responsibilities]
+primary = [
+    "Wait for the implementer to complete Phase A before starting first review",
+    "After Phase A: Verify README.md covers all topics; ARCHITECTURE.md documents full lifecycle",
+    "After Phase B: Verify every branch fork relationship via git merge-base checks",
+    "After Phase B: Challenge idempotency — run init-branches.sh twice, expect no errors",
+    "After Phase B: Challenge naming edge cases — try feature names with slashes, spaces, special chars",
+    "After Phase C: Run verify-topology.sh; confirm exit code 0",
+    "After Phase C: Run new-feature.sh smoke test with a novel feature name",
+    "After all phases: Verify all V.1–V.10 checks from verification.toml pass",
+    "Flag issues with specific file:line references and send corrections back to Implementer",
+    "Verify fixes in subsequent review rounds before approving",
+]
+
+[reviewer.scrutiny_areas]
+fork_integrity = "git merge-base --is-ancestor check for every parent→child pair"
+idempotency = "Run every script twice; second run must succeed with no errors"
+naming_edge_cases = "Test: front-end/hero, back-end/api, shared/utils, multi/part/feature"
+error_handling = "Scripts must handle: no git repo, dirty working tree, branch already exists, invalid feature names"
+script_safety = "set -euo pipefail present; no unquoted variables; no silent failures"
+branch_content = "Spec branches must contain zero implementation files (.ts, .js, .py, etc.)"
+readme_presence = "Every branch must have a README.md explaining its role"
+no_scope_creep = "Template contains no application code, no CI configs, no framework scaffolds"
+
+# -----------------------------------------------------------------------------
+# REVIEW ITERATION PROTOCOL
+# -----------------------------------------------------------------------------
+[iteration]
+max_rounds = 3
+protocol = """
+1. Implementer produces output for the current phase
+2. Reviewer audits the output against scrutiny areas
+3. Reviewer sends a structured review: {file:line, issue, severity, suggested_fix}
+4. Implementer addresses all issues or counters if the reviewer is wrong
+5. Reviewer re-audits until all issues resolved
+6. When Reviewer approves the current phase, move to next phase
+"""
+
+[[iteration.severity_levels]]
+level = "CRITICAL"
+meaning = "Breaks the topology, creates security risk, or makes template unusable"
+action = "Must fix before moving to next phase"
+
+[[iteration.severity_levels]]
+level = "MAJOR"
+meaning = "Violates conventions, missing edge case handling, incomplete documentation"
+action = "Must fix before phase completion"
+
+[[iteration.severity_levels]]
+level = "MINOR"
+meaning = "Style inconsistency, minor text tweaks, optional improvements"
+action = "Fix if time allows; must not block progress"
+
+# -----------------------------------------------------------------------------
+# COMPLETION CRITERIA
+# -----------------------------------------------------------------------------
+[completion]
+statement = "Task is complete only when the Reviewer approves."
+requirements = [
+    "All V.1–V.10 checks from verification.toml pass",
+    "Reviewer has no open CRITICAL or MAJOR issues",
+    "init-branches.sh creates full topology in one command",
+    "new-feature.sh creates full feature chain for any valid feature path",
+    "verify-topology.sh exits 0 in all scenarios",
+    "All branches pushed to origin; GitHub template flag enabled",
+]

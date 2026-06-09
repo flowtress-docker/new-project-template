@@ -1,0 +1,329 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =============================================================================
+# scaffold_2 — Create project scaffolding with 31 branch worktrees (v2)
+# =============================================================================
+# Usage: scaffold_2 <project-name>
+# Output: <project-name>_root/ with .bare + 31 worktrees
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Phase 0 — Preflight
+# ---------------------------------------------------------------------------
+
+PROJECT_NAME=$(echo "${1:-}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+if [ -z "$PROJECT_NAME" ]; then
+    echo "ERROR: No project name provided." >&2
+    echo "Usage: scaffold_2 <project-name>" >&2
+    exit 1
+fi
+
+if ! echo "$PROJECT_NAME" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+    echo "ERROR: Invalid project name: ${PROJECT_NAME}. Use alphanumeric, hyphens, underscores." >&2
+    exit 1
+fi
+
+ROOT_DIR="${PROJECT_NAME}_root"
+
+if [ -d "$ROOT_DIR" ]; then
+    if [ -d "$ROOT_DIR/.bare" ]; then
+        echo "ERROR: Project already scaffolded." >&2
+    else
+        echo "ERROR: ${ROOT_DIR} already exists" >&2
+    fi
+    exit 1
+fi
+
+if ! command -v git &>/dev/null; then
+    echo "ERROR: git is not installed or not in PATH" >&2
+    exit 1
+fi
+
+mkdir "$ROOT_DIR"
+git init --bare "$ROOT_DIR/.bare" >/dev/null
+GIT="git --git-dir=${ROOT_DIR}/.bare"
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+create_orphan() {
+    local branch="$1"
+    local commit_msg="$2"
+    local wt_path="$3"
+    shift 3
+    local -a seed_cmds=("$@")
+
+    echo "Creating branch: ${branch} [orphan]"
+
+    $GIT worktree add -b "$branch" --orphan "$wt_path" >/dev/null
+
+    local cmd
+    for cmd in "${seed_cmds[@]}"; do
+        eval "$cmd"
+    done
+
+    if [ ${#seed_cmds[@]} -gt 0 ]; then
+        git -C "$wt_path" add -A >/dev/null 2>&1
+        git -C "$wt_path" commit -m "$commit_msg" >/dev/null 2>&1
+    fi
+}
+
+create_fork() {
+    local branch="$1"
+    local parent="$2"
+    local wt_path="$3"
+
+    echo "Creating branch: ${branch} [fork of ${parent}]"
+
+    $GIT branch "$branch" "$parent" >/dev/null
+    $GIT worktree add "$wt_path" "$branch" >/dev/null
+}
+
+write_gitignore() {
+    local target="$1"
+    cat > "$target" << 'EOF'
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+EOF
+}
+
+# =============================================================================
+# Phase 1 — Utility Branches (null, main)
+# =============================================================================
+
+echo "Creating branch: null [orphan]"
+$GIT worktree add -b null --orphan "${ROOT_DIR}/null" >/dev/null
+git -C "${ROOT_DIR}/null" commit --allow-empty -m "chore: null branch — duplication source" >/dev/null 2>&1
+
+create_orphan "main" "chore: initial placeholder commit" "${ROOT_DIR}/main" \
+    "printf '%s\n' '# ${PROJECT_NAME}
+
+Development repository. See \`git --git-dir=.bare worktree list\` for all branches.' > '${ROOT_DIR}/main/README.md'"
+
+# =============================================================================
+# Phase 2 — Planning Branches
+# =============================================================================
+
+create_orphan "01_rough-plan" "chore: 01_rough-plan — brainstorming space" "${ROOT_DIR}/01_rough-plan" \
+    "cat > '${ROOT_DIR}/01_rough-plan/README.md' << 'EOF'
+# 01 Rough Plan
+
+Brainstorming space for:
+- Rough project idea
+- MVP scope
+- Future releases
+
+Agent: Use interview-style Q&A to gather context from developer.
+EOF"
+
+create_orphan "02_context" "chore: 02_context — scope setting" "${ROOT_DIR}/02_context" \
+    "cat > '${ROOT_DIR}/02_context/README.md' << 'EOF'
+# 02 Context
+
+Precise scope setting. Uses resources from:
+- https://github.com/flowtress-docker/context
+
+Gathers: project context, relevant skills, interview Q&A results.
+Demarcates into plans and specs. No implementation.
+EOF" \
+    "cat > '${ROOT_DIR}/02_context/CONTEXT.md' << 'EOF'
+# Project Context
+
+## Interview Q&A
+
+<!-- Agent: document interview results here -->
+
+## Skills Required
+
+<!-- Agent: list skills gathered from flowtress-docker/context -->
+
+## Decisions
+
+<!-- Key decisions made during context gathering -->
+
+## Open Questions
+
+<!-- Unresolved items for next session -->
+EOF"
+
+create_orphan "02_plan" "chore: 02_plan — detailed planning" "${ROOT_DIR}/02_plan" \
+    "cat > '${ROOT_DIR}/02_plan/README.md' << 'EOF'
+# 02 Plan
+
+Detailed MVP plan. Content fed from 02_context.
+
+Subfolders:
+- plan/ — demarcated plans per feature area (.md + .toml + agent-optimized formats)
+EOF" \
+    "mkdir -p '${ROOT_DIR}/02_plan/plan'"
+
+# =============================================================================
+# Phase 3 — Standards (ui/impeccable)
+# =============================================================================
+
+create_orphan "ui/impeccable" "chore: ui/impeccable — UI standards" "${ROOT_DIR}/ui" \
+    "cat > '${ROOT_DIR}/ui/README.md' << 'EOF'
+# UI Standards — Impeccable
+
+Source: https://github.com/pbakaus/impeccable
+
+Anti-patterns and standards for all UI:
+- Typography
+- Color schemes
+- Layout principles
+- Accessibility (WCAG)
+- Responsive design
+
+Used by: all impl/front-end_* branches.
+EOF"
+
+# =============================================================================
+# Phase 4 — Spec Branches (9 orphans)
+# =============================================================================
+
+for spec_branch in spec/front-end_tech-stack spec/back-end_tech-stack \
+                   spec/front-end_typography spec/front-end_color-scheme \
+                   spec/front-end_navbar spec/front-end_footer \
+                   spec/front-end_app-shell spec/front-end_hero \
+                   spec/front-end_homepage; do
+    spec_name="${spec_branch##*/}"
+    spec_dir="${ROOT_DIR}/${spec_branch}"
+
+    echo "Creating branch: ${spec_branch} [orphan]"
+
+    $GIT worktree add -b "$spec_branch" --orphan "$spec_dir" >/dev/null
+
+    cat > "${spec_dir}/README.md" << EOF
+# Spec: ${spec_name}
+
+Specification for ${spec_name}.
+
+Contents:
+- Code behavior definition
+- Branding requirements
+- UX copy
+- Anti-patterns to avoid
+- Visualizations (if needed for approval)
+
+No implementation code on this branch.
+EOF
+    mkdir -p "${spec_dir}/spec"
+    git -C "$spec_dir" add -A >/dev/null 2>&1
+    git -C "$spec_dir" commit -m "chore: ${spec_branch} — specification" >/dev/null 2>&1
+done
+
+# =============================================================================
+# Phase 5 — Testing Branches (8 forks of spec)
+# =============================================================================
+
+for pair in \
+    "testing/front-end_typography:spec/front-end_typography" \
+    "testing/front-end_color-scheme:spec/front-end_color-scheme" \
+    "testing/front-end_navbar:spec/front-end_navbar" \
+    "testing/front-end_footer:spec/front-end_footer" \
+    "testing/front-end_app-shell:spec/front-end_app-shell" \
+    "testing/front-end_hero:spec/front-end_hero" \
+    "testing/front-end_homepage:spec/front-end_homepage" \
+    "testing/back-end_tech-stack:spec/back-end_tech-stack"; do
+    branch="${pair%%:*}"
+    parent="${pair##*:}"
+    create_fork "$branch" "$parent" "${ROOT_DIR}/${branch}"
+done
+
+# =============================================================================
+# Phase 6 — Implementation Branches
+# =============================================================================
+
+create_orphan "impl/front-end_tech-stack" "chore: impl/front-end_tech-stack — front-end bootstrap" \
+    "${ROOT_DIR}/impl/front-end_tech-stack" \
+    "cat > '${ROOT_DIR}/impl/front-end_tech-stack/README.md' << 'EOF'
+# Front-End Tech Stack Implementation
+
+Boilerplate to confirm dependencies work together.
+- Runs on localhost
+- Agents should NOT customize this branch
+- Resolve dependency conflicts here before implementation begins
+EOF" \
+    "write_gitignore '${ROOT_DIR}/impl/front-end_tech-stack/.gitignore'" \
+    "mkdir -p '${ROOT_DIR}/impl/front-end_tech-stack/src'"
+
+create_orphan "impl/front-end_app-shell" "chore: impl/front-end_app-shell — app shell merge target" \
+    "${ROOT_DIR}/impl/front-end_app-shell" \
+    "cat > '${ROOT_DIR}/impl/front-end_app-shell/README.md' << 'EOF'
+# App Shell Implementation
+
+Navbar+footer combined. Merge target for navbar + footer.
+Fork parent for most impl/* branches and staging/v1.
+EOF" \
+    "mkdir -p '${ROOT_DIR}/impl/front-end_app-shell/src'"
+
+for branch in impl/front-end_typography impl/front-end_color-scheme \
+              impl/front-end_navbar impl/front-end_footer \
+              impl/front-end_hero impl/front-end_homepage; do
+    create_fork "$branch" "impl/front-end_app-shell" "${ROOT_DIR}/${branch}"
+done
+
+create_orphan "impl/back-end_tech-stack" "chore: impl/back-end_tech-stack — back-end bootstrap" \
+    "${ROOT_DIR}/impl/back-end_tech-stack" \
+    "cat > '${ROOT_DIR}/impl/back-end_tech-stack/README.md' << 'EOF'
+# Back-End Tech Stack Implementation
+
+Boilerplate to confirm dependencies work together.
+- Runs on localhost
+- Agents should NOT customize this branch
+- Resolve dependency conflicts here before implementation begins
+EOF" \
+    "write_gitignore '${ROOT_DIR}/impl/back-end_tech-stack/.gitignore'" \
+    "mkdir -p '${ROOT_DIR}/impl/back-end_tech-stack/src'"
+
+# =============================================================================
+# Phase 7 — QA Branches (staging, bug-fixes, deployment)
+# =============================================================================
+
+create_fork "staging/v1" "impl/front-end_app-shell" "${ROOT_DIR}/staging/v1"
+create_fork "bug-fixes/front-end_navbar-nav-fix" "impl/front-end_navbar" \
+    "${ROOT_DIR}/bug-fixes/front-end_navbar-nav-fix"
+
+create_orphan "deployment/v1" "chore: deployment/v1 — production deployment" \
+    "${ROOT_DIR}/deployment/v1" \
+    "cat > '${ROOT_DIR}/deployment/v1/README.md' << 'EOF'
+# Deployment: v1
+
+Production-ready code. Merged from staging/* + bug-fixes/*.
+EOF"
+
+create_orphan "deployment/v2" "chore: deployment/v2 — production deployment" \
+    "${ROOT_DIR}/deployment/v2" \
+    "cat > '${ROOT_DIR}/deployment/v2/README.md' << 'EOF'
+# Deployment: v2
+
+Production-ready code. Merged from staging/* + bug-fixes/*.
+EOF"
+
+# =============================================================================
+# Summary
+# =============================================================================
+
+echo ""
+echo "Scaffolded ${PROJECT_NAME}_root with 31 branches."
+echo ""
+echo "Next: cd ${PROJECT_NAME}_root && git --git-dir=.bare worktree list"
+
+exit 0

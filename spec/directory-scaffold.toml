@@ -29,7 +29,7 @@ readme_content = "# 01 Rough Plan\n\nBrainstorming space for rough idea, MVP sco
 branch = "02_context"
 type = "orphan"
 directories = []
-files = ["README.md"]
+files = ["README.md", "CONTEXT.md"]
 readme_content = "# 02 Context\n\nPrecise scope setting. Uses flowtress-docker/context for interview Q&A and skill gathering."
 
 [planning."02_plan"]

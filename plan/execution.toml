@@ -8,7 +8,7 @@
 [meta]
 script_name = "scaffold"
 approach = "create-all-upfront"
-total_phases = 6
+total_phases = 7
 total_operations = 34
 
 # =============================================================================
@@ -18,6 +18,12 @@ total_operations = 34
 [phase_0]
 label = "Preflight"
 order = 0
+
+[[phase_0.steps]]
+id = "P.0"
+action = "Trim project name whitespace"
+command = "PROJECT_NAME=$(echo \"$1\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+note = "Per cli-interface.toml: trim leading/trailing whitespace before validation."
 
 [[phase_0.steps]]
 id = "P.1"
@@ -149,7 +155,20 @@ for branch in spec/front-end_tech-stack spec/back-end_tech-stack \
              spec/front-end_app-shell spec/front-end_hero \
              spec/front-end_homepage; do
     git --git-dir=.bare worktree add --orphan "$branch"
-    echo "$branch" > <project-name>_root/"$branch"/README.md
+    cat > <project-name>_root/"$branch"/README.md << 'READMEEOF'
+# Spec: ${branch##*/}
+
+Specification for ${branch##*/}.
+
+Contents:
+- Code behavior definition
+- Branding requirements
+- UX copy
+- Anti-patterns to avoid
+- Visualizations (if needed for approval)
+
+No implementation code on this branch.
+READMEEOF
     mkdir -p <project-name>_root/"$branch"/spec
     git -C <project-name>_root/"$branch" add -A
     git -C <project-name>_root/"$branch" commit -m "chore: $branch — specification"
@@ -162,7 +181,7 @@ note = "Each spec branch gets README.md + spec/ directory."
 # =============================================================================
 
 [phase_5]
-label = "Implementation Branches (3 orphans + 8 forks)"
+label = "Implementation Branches (4 orphans + 7 forks)"
 order = 5
 
 # --- Front-end tech-stack (orphan) ---
@@ -231,6 +250,16 @@ command = "git --git-dir=.bare worktree add --orphan impl/back-end_api"
 id = "IM.12"
 action = "Create impl/back-end_db worktree"
 command = "git --git-dir=.bare worktree add --orphan impl/back-end_db"
+
+[[phase_5.steps]]
+id = "IM.13"
+action = "Seed impl/back-end_api and commit"
+command = "Write README.md (back-end api) + mkdir src/, git -C impl/back-end_api add -A && git -C impl/back-end_api commit -m 'chore: impl/back-end_api — seed'"
+
+[[phase_5.steps]]
+id = "IM.14"
+action = "Seed impl/back-end_db and commit"
+command = "Write README.md (back-end db) + mkdir src/, git -C impl/back-end_db add -A && git -C impl/back-end_db commit -m 'chore: impl/back-end_db — seed'"
 
 # =============================================================================
 # PHASE 6 — QA BRANCHES

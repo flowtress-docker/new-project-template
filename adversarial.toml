@@ -91,7 +91,7 @@ primary = [
     "Verify scaffold creates exactly 31 branches (git --git-dir=.bare branch -a count)",
     "Verify null branch is completely empty (0 tracked files, 1 empty commit)",
     "Verify all 22 orphan branches have no parent (git merge-base returns nothing)",
-    "Verify front-end fork chain integrity: typography→color-scheme→navbar→footer→app-shell→hero, app-shell→homepage",
+    "Verify front-end fork chain integrity: typography→color-scheme→navbar→footer→app-shell, app-shell→hero, app-shell→homepage",
     "Verify hero and homepage are siblings (both fork from app-shell, not from each other)",
     "Verify back-end branches are all orphans (api and db are NOT forks of tech-stack)",
     "Verify testing/front-end_navbar forks from impl/front-end_navbar",

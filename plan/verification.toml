@@ -73,19 +73,25 @@ expect = "No output"
 
 [[verify]]
 id = "V.10"
-name = "22 orphan branches have no parent (no merge base with any other branch)"
+name = "22 orphan branches have no merge-base with main (true orphans)"
 command = """
-# Orphan list from topology.toml:
-for orphan in null main 01_rough-plan 02_context 02_plan ui/impeccable \
+for orphan in null 01_rough-plan 02_context 02_plan ui/impeccable \
               spec/front-end_tech-stack spec/back-end_tech-stack \
               spec/front-end_typography spec/front-end_color-scheme \
               spec/front-end_navbar spec/front-end_footer \
               spec/front-end_app-shell spec/front-end_hero spec/front-end_homepage \
               impl/front-end_tech-stack impl/back-end_tech-stack \
               impl/back-end_api impl/back-end_db \
-              staging/v1 deployment/v1 deployment/v2; do
-    git --git-dir=.bare show-ref --verify "refs/heads/$orphan" || echo "MISSING: $orphan"
+              staging/v1 deployment/v1 deployment/v2 \
+              main; do
+    ref="refs/heads/main"
+    [ "$orphan" = "main" ] && ref="refs/heads/null"
+    if git --git-dir=.bare merge-base "refs/heads/$orphan" "$ref" >/dev/null 2>&1; then
+        echo "FAIL: $orphan is not a true orphan — shares history with $ref"
+        exit 1
+    fi
 done
+echo "All 22 orphan branches verified: no shared history"
 """
 
 # --- FRONT-END FORK CHAIN INTEGRITY ---

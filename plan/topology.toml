@@ -1,0 +1,333 @@
+# =============================================================================
+# BRANCH TOPOLOGY SPECIFICATION — 31 branches
+# =============================================================================
+# Defines all branches, fork relationships, naming conventions, and seeds.
+# =============================================================================
+
+[meta]
+version = "2.0.0"
+total_branches = 31
+orphans = 22
+forks = 8
+creation_order = "null → main → phase1 → phase2 → phase3 → phase4 → phase5"
+
+# =============================================================================
+# PHASE 0 — UTILITY
+# =============================================================================
+
+[branches.null]
+name = "null"
+type = "orphan"
+parent = "none"
+purpose = "Empty branch for duplicating (not forking) when developer wants an empty starting point."
+seeds = []
+commit_message = "chore: null branch — duplication source"
+
+[branches.main]
+name = "main"
+type = "orphan"
+parent = "none"
+purpose = "Development root. Placeholder README only."
+seeds = ["README.md"]
+commit_message = "chore: initial placeholder commit"
+
+# =============================================================================
+# PHASE 1 — PLANNING (3 orphans)
+# =============================================================================
+
+[branches."01_rough-plan"]
+name = "01_rough-plan"
+type = "orphan"
+parent = "none"
+purpose = "Brainstorming: rough idea, MVP scope, future releases."
+feeds = "02_context" # informational, not git fork
+seeds = ["README.md"]
+
+[branches."02_context"]
+name = "02_context"
+type = "orphan"
+parent = "none"
+purpose = "Precise scope setting using flowtress-docker/context resources."
+consumes = "01_rough-plan"
+feeds = "02_plan"
+seeds = ["README.md", "CONTEXT.md"]
+
+[branches."02_plan"]
+name = "02_plan"
+type = "orphan"
+parent = "none"
+purpose = "Detailed MVP plan demarcated in subfolders with .md + .toml."
+consumes = "02_context"
+feeds = "spec/* branches"
+seeds = ["README.md", "plan/"]
+
+# =============================================================================
+# PHASE 2 — STANDARDS (1 orphan)
+# =============================================================================
+
+[branches."ui/impeccable"]
+name = "ui/impeccable"
+type = "orphan"
+parent = "none"
+purpose = "UI standards and anti-patterns. Source: pbakaus/impeccable."
+external_source = "https://github.com/pbakaus/impeccable"
+seeds = ["README.md"]
+
+# =============================================================================
+# PHASE 3 — SPECS (9 orphans)
+# =============================================================================
+
+[branches."spec/front-end_tech-stack"]
+name = "spec/front-end_tech-stack"
+type = "orphan"
+parent = "none"
+purpose = "Front-end technology decisions: frameworks, build tools, dependencies."
+seeds = ["README.md", "spec/"]
+
+[branches."spec/back-end_tech-stack"]
+name = "spec/back-end_tech-stack"
+type = "orphan"
+parent = "none"
+purpose = "Back-end technology decisions: runtime, framework, database."
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_typography"]
+name = "spec/front-end_typography"
+type = "orphan"
+parent = "none"
+purpose = "Typography spec: font families, sizes, weights, combinations, heading standards."
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_color-scheme"]
+name = "spec/front-end_color-scheme"
+type = "orphan"
+parent = "none"
+purpose = "Color scheme spec: brand colors, variations, WCAG AA contrast."
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_navbar"]
+name = "spec/front-end_navbar"
+type = "orphan"
+parent = "none"
+purpose = "Navbar spec: structure, UX copy, branding, anti-patterns."
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_footer"]
+name = "spec/front-end_footer"
+type = "orphan"
+parent = "none"
+purpose = "Footer spec: structure, UX copy, branding, anti-patterns."
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_app-shell"]
+name = "spec/front-end_app-shell"
+type = "orphan"
+parent = "none"
+purpose = "App shell spec: navbar+footer combined layout. Starting point for pages."
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_hero"]
+name = "spec/front-end_hero"
+type = "orphan"
+parent = "none"
+purpose = "Hero section spec: layout, content strategy, CTAs."
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_homepage"]
+name = "spec/front-end_homepage"
+type = "orphan"
+parent = "none"
+purpose = "Homepage spec: page composition, sections, content hierarchy."
+seeds = ["README.md", "spec/"]
+
+# =============================================================================
+# PHASE 4 — IMPLEMENTATION (11 branches: 3 orphans, 8 forks)
+# =============================================================================
+
+# --- Front-End Fork Chain ---
+
+[branches."impl/front-end_tech-stack"]
+name = "impl/front-end_tech-stack"
+type = "orphan"
+parent = "none"
+purpose = "Front-end boilerplate. Confirm packages work. Agents do not customize."
+feeds = "impl/front-end_typography" # fork parent
+seeds = ["README.md", ".gitignore", "src/"]
+
+[branches."impl/front-end_typography"]
+name = "impl/front-end_typography"
+type = "fork"
+parent = "impl/front-end_tech-stack"
+purpose = "Strips boilerplate. Adds typography: font sizes, weights, combos. Influenced by ui/impeccable."
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_color-scheme"]
+name = "impl/front-end_color-scheme"
+type = "fork"
+parent = "impl/front-end_typography"
+purpose = "Strips boilerplate. Adds color scheme: brand colors, variations, WCAG AA contrast. Influenced by ui/impeccable."
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_navbar"]
+name = "impl/front-end_navbar"
+type = "fork"
+parent = "impl/front-end_color-scheme"
+purpose = "Strips boilerplate. Adds navbar component. Specs from spec/front-end_navbar."
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_footer"]
+name = "impl/front-end_footer"
+type = "fork"
+parent = "impl/front-end_navbar"
+purpose = "Strips boilerplate. Adds footer component. Specs from spec/front-end_footer."
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_app-shell"]
+name = "impl/front-end_app-shell"
+type = "fork"
+parent = "impl/front-end_footer"
+purpose = "Navbar+footer combined. Parent for most components and pages."
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_hero"]
+name = "impl/front-end_hero"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Hero section. Specs from spec/front-end_hero."
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_homepage"]
+name = "impl/front-end_homepage"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Homepage. Specs from spec/front-end_homepage."
+seeds = ["README.md", "src/"]
+
+# --- Back-End (all orphans) ---
+
+[branches."impl/back-end_tech-stack"]
+name = "impl/back-end_tech-stack"
+type = "orphan"
+parent = "none"
+purpose = "Back-end boilerplate. Confirm runtime + dependencies work."
+seeds = ["README.md", ".gitignore", "src/"]
+
+[branches."impl/back-end_api"]
+name = "impl/back-end_api"
+type = "orphan"
+parent = "none"
+purpose = "Back-end API implementation. Standalone."
+seeds = ["README.md", "src/"]
+
+[branches."impl/back-end_db"]
+name = "impl/back-end_db"
+type = "orphan"
+parent = "none"
+purpose = "Back-end database implementation. Standalone."
+seeds = ["README.md", "src/"]
+
+# =============================================================================
+# PHASE 5 — QA (5 example branches: 2 orphans, 2 forks)
+# =============================================================================
+
+[branches."testing/front-end_navbar"]
+name = "testing/front-end_navbar"
+type = "fork"
+parent = "impl/front-end_navbar"
+purpose = "Tests for navbar component."
+seeds = ["README.md"]
+
+[branches."staging/v1"]
+name = "staging/v1"
+type = "orphan"
+parent = "none"
+purpose = "Integration staging for v1. Merges impl/ branches."
+seeds = ["README.md"]
+
+[branches."bug-fixes/front-end_navbar-nav-fix"]
+name = "bug-fixes/front-end_navbar-nav-fix"
+type = "fork"
+parent = "impl/front-end_navbar"
+purpose = "Bug fixes for navbar component."
+seeds = ["README.md"]
+
+[branches."deployment/v1"]
+name = "deployment/v1"
+type = "orphan"
+parent = "none"
+purpose = "Production-ready v1 deployment. Merged from bug-fixes/ + staging/."
+seeds = ["README.md"]
+
+[branches."deployment/v2"]
+name = "deployment/v2"
+type = "orphan"
+parent = "none"
+purpose = "Production-ready v2 deployment."
+seeds = ["README.md"]
+
+# =============================================================================
+# FORK CHAINS (for verification)
+# =============================================================================
+
+[[fork_chains]]
+chain = "front-end-cascade"
+branches = [
+    "impl/front-end_tech-stack",
+    "impl/front-end_typography",
+    "impl/front-end_color-scheme",
+    "impl/front-end_navbar",
+    "impl/front-end_footer",
+    "impl/front-end_app-shell",
+    "impl/front-end_hero",
+    "impl/front-end_homepage",
+]
+fork_pattern = "Each forked from predecessor except tech-stack (orphan). hero and homepage both fork from app-shell."
+
+# =============================================================================
+# ORPHAN BRANCHES (for verification — must have no parent)
+# =============================================================================
+
+[[orphans]]
+name = "null"
+[[orphans]]
+name = "main"
+[[orphans]]
+name = "01_rough-plan"
+[[orphans]]
+name = "02_context"
+[[orphans]]
+name = "02_plan"
+[[orphans]]
+name = "ui/impeccable"
+[[orphans]]
+name = "spec/front-end_tech-stack"
+[[orphans]]
+name = "spec/back-end_tech-stack"
+[[orphans]]
+name = "spec/front-end_typography"
+[[orphans]]
+name = "spec/front-end_color-scheme"
+[[orphans]]
+name = "spec/front-end_navbar"
+[[orphans]]
+name = "spec/front-end_footer"
+[[orphans]]
+name = "spec/front-end_app-shell"
+[[orphans]]
+name = "spec/front-end_hero"
+[[orphans]]
+name = "spec/front-end_homepage"
+[[orphans]]
+name = "impl/front-end_tech-stack"
+[[orphans]]
+name = "impl/back-end_tech-stack"
+[[orphans]]
+name = "impl/back-end_api"
+[[orphans]]
+name = "impl/back-end_db"
+[[orphans]]
+name = "staging/v1"
+[[orphans]]
+name = "deployment/v1"
+[[orphans]]
+name = "deployment/v2"

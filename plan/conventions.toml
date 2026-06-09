@@ -1,0 +1,147 @@
+# =============================================================================
+# CONVENTIONS & CONSTRAINTS
+# =============================================================================
+# Rules for agents implementing and maintaining the scaffold tool.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TOOL PREFERENCES
+# -----------------------------------------------------------------------------
+[tools]
+file_creation = "Write"
+file_editing = "Edit"
+code_search = "Grep"
+file_pattern_search = "Glob"
+file_reading = "Read"
+git_operations = "Bash"
+script_execution = "Bash"
+
+[tools.avoid]
+"bash grep" = "Use Grep tool instead"
+"cat/head/tail" = "Use Read tool instead"
+"find/ls" = "Use Glob tool instead"
+"echo/heredoc for file creation" = "Use Write tool instead"
+
+# -----------------------------------------------------------------------------
+# ANTI-PATTERNS
+# -----------------------------------------------------------------------------
+[[antipatterns]]
+rule = "No project code in template"
+reason = "Pure topology template. Seed files are minimal READMEs only."
+
+[[antipatterns]]
+rule = "No git worktree for branch creation by agents"
+reason = "scaffold script creates worktrees. Agents use existing worktrees only."
+
+[[antipatterns]]
+rule = "No embedded secrets"
+reason = "No tokens, API keys, or environment-specific values."
+
+[[antipatterns]]
+rule = "No interactive scripts"
+reason = "scaffold is automation-first. No prompts. No confirmations."
+
+[[antipatterns]]
+rule = "Keep READMEs concise"
+reason = "One paragraph per README explaining the branch's role."
+
+[[antipatterns]]
+rule = "No over-engineering"
+reason = "Implement what's specified. No extras."
+
+# -----------------------------------------------------------------------------
+# BRANCH NAMING CONVENTIONS
+# -----------------------------------------------------------------------------
+
+[naming.null_branch]
+name = "null"
+type = "orphan"
+purpose = "Empty branch for duplicating. Developers duplicate (not fork) this branch."
+rule = "Never fork null. Always duplicate (create new orphan from same empty commit)."
+
+[naming.planning_branches]
+prefixes = ["01_rough-plan", "02_context", "02_plan"]
+type = "orphan"
+rule = "Numbered planning phases. Created in order but no git parent-child relationship."
+
+[naming.standards_branches]
+prefixes = ["ui/"]
+type = "orphan"
+rule = "Standards and reference branches. ui/impeccable is the only v1 standard."
+
+[naming.spec_branches]
+prefix = "spec/"
+type = "orphan"
+pattern = "spec/<front-end or back-end prefix>_<feature-name>"
+examples = ["spec/front-end_navbar", "spec/back-end_tech-stack"]
+rule = "Path separators → underscores. All spec branches are orphans."
+
+[naming.impl_branches]
+prefix = "impl/"
+type = "orphan or fork"
+pattern = "impl/<prefix>_<feature-name>"
+orphan_examples = ["impl/front-end_tech-stack", "impl/back-end_api"]
+fork_examples = ["impl/front-end_navbar (fork of impl/front-end_color-scheme)"]
+rule = "Tech-stack branches are orphans. Feature branches fork from previous in chain or tech-stack."
+
+[naming.impl_fork_chain]
+rule = "Front-end impl forks in sequence: tech-stack → typography → color-scheme → navbar → footer → app-shell → hero/homepage"
+note = "hero and homepage both fork from app-shell (not from each other)."
+
+[naming.impl_backend]
+rule = "Back-end impl branches are all orphans. No fork chain for back-end."
+branches = ["impl/back-end_tech-stack", "impl/back-end_api", "impl/back-end_db"]
+
+[naming.testing_branches]
+prefix = "testing/"
+type = "fork"
+pattern = "testing/<prefix>_<feature>"
+example = "testing/front-end_navbar (fork of impl/front-end_navbar)"
+
+[naming.staging_branches]
+prefix = "staging/"
+type = "orphan"
+pattern = "staging/v<version-number>"
+example = "staging/v1"
+
+[naming.bugfix_branches]
+prefix = "bug-fixes/"
+type = "fork"
+pattern = "bug-fixes/<branch-name>-<fix-description>"
+example = "bug-fixes/front-end_navbar-nav-fix (fork of impl/front-end_navbar)"
+
+[naming.deployment_branches]
+prefix = "deployment/"
+type = "orphan"
+pattern = "deployment/v<version-number>"
+example = "deployment/v1"
+
+# -----------------------------------------------------------------------------
+# SCRIPT CONVENTIONS
+# -----------------------------------------------------------------------------
+[scripts]
+language = "bash"
+shebang = "#!/usr/bin/env bash"
+safety_flags = "set -euo pipefail"
+idempotency = "scaffold checks if .bare exists in root before creating. If exists, exit 1."
+exit_codes = "0 = success, 1 = error with message to stderr"
+
+# -----------------------------------------------------------------------------
+# COMMIT CONVENTIONS
+# -----------------------------------------------------------------------------
+[commits]
+style = "conventional commits"
+examples = [
+    "chore: null branch — duplication source",
+    "chore: initial placeholder commit",
+    "chore: 01_rough-plan — brainstorming space",
+    "chore: 02_context — scope setting",
+    "chore: 02_plan — detailed planning",
+    "chore: ui/impeccable — UI standards",
+    "chore: spec/<feature> — specification",
+    "chore: impl/<feature> — implementation",
+    "chore: testing/<feature> — test setup",
+    "chore: staging/v1 — integration staging",
+    "chore: bug-fixes/<desc> — bug fix",
+    "chore: deployment/v1 — production deployment",
+]

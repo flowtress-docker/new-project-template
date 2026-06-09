@@ -1,36 +1,39 @@
 # =============================================================================
 # ADVERSARIAL AGENT PROMPT
 # =============================================================================
-# Pattern: Executor + Verifier (from flowtress-docker/context)
-# Two parallel agents iterate until the Reviewer approves.
+# Pattern: Executor + Verifier
+# Implementer builds scaffold tool. Reviewer challenges every decision.
 # =============================================================================
 
 [meta]
 pattern = "Executor + Verifier"
 source = "flowtress-docker/context/templates/adversarial-agents.html"
 applies_to = "Implementation"
-version = "2.0.0"
+version = "3.0.0"
 
 # -----------------------------------------------------------------------------
 # ORCHESTRATOR INSTRUCTIONS
 # -----------------------------------------------------------------------------
 [orchestrator]
 instruction = """
-Set up two parallel agents for this implementation task. The verifier is
-blocked until the executor produces a first draft. They iterate until the
-Reviewer approves all verification checks.
+Set up two parallel agents for this implementation task.
+The verifier is blocked until the executor produces a first draft.
+They iterate until the Reviewer approves all verification checks.
 """
 
 # -----------------------------------------------------------------------------
-# TASK DEFINITION (shared between agents)
+# TASK DEFINITION
 # -----------------------------------------------------------------------------
 [task]
-summary = "Implement a GitHub repository template that automates a recurring branch topology: main → context → /plan/* → /spec/* → impl/*"
+summary = "Build a globally-installable `scaffold` CLI tool that creates a project root with bare git repo and 31 branch worktrees in one command."
 spec_files = [
-    "prompt/topology.toml",
-    "prompt/execution.toml",
-    "prompt/conventions.toml",
-    "prompt/verification.toml",
+    "plan/topology.toml",
+    "plan/execution.toml",
+    "plan/conventions.toml",
+    "plan/verification.toml",
+    "spec/cli-interface.toml",
+    "spec/directory-scaffold.toml",
+    "spec/seed-templates.toml",
 ]
 
 # -----------------------------------------------------------------------------
@@ -38,36 +41,40 @@ spec_files = [
 # -----------------------------------------------------------------------------
 [implementer]
 name = "Implementer"
-role = "Executor — performs the actual work"
+role = "Executor — builds the scaffold script"
 blocked_until = "none"
 
 [implementer.responsibilities]
 primary = [
-    "Read prompt/topology.toml to understand the full branch topology",
-    "Read prompt/execution.toml for the ordered phase plan",
-    "Read prompt/conventions.toml for tool preferences and anti-patterns",
-    "Implement Phase A: Create README.md, ARCHITECTURE.md, .gitignore on main",
-    "Implement Phase B: Build init-branches.sh with all branch creation logic",
-    "Implement Phase C: Create new-feature.sh, verify-topology.sh, .github/BRANCH_NAMING.md",
-    "Implement Phase D: Push all branches, mark as GitHub template",
+    "Read plan/topology.toml for the full 31-branch topology",
+    "Read plan/execution.toml for the ordered creation phases (0–6)",
+    "Read spec/cli-interface.toml for the CLI contract (signature, flags, exit codes)",
+    "Read spec/directory-scaffold.toml for exact file/folder output per branch type",
+    "Read spec/seed-templates.toml for starter file content",
+    "Implement the scaffold script: /bin/scaffold",
+    "Phase 0: Preflight (validate name, check dir doesn't exist, verify git)",
+    "Phase 1: Create null + main branches as worktrees",
+    "Phase 2: Create 01_rough-plan, 02_context, 02_plan as orphan worktrees",
+    "Phase 3: Create ui/impeccable as orphan worktree",
+    "Phase 4: Create 9 spec/* branches as orphan worktrees",
+    "Phase 5: Create impl/front-end_tech-stack (orphan) + 7 front-end fork chain + 3 back-end orphans",
+    "Phase 6: Create testing, staging, bug-fixes, deployment examples",
+    "Seed minimal files (README.md, .gitignore, directories) per branch type",
+    "Print summary on success",
 ]
-
-[implementer.interaction]
-respond_to_reviewer_feedback = true
-fix_issues_promptly = true
-ask_clarifying_questions = "Only when the spec is ambiguous or contradictory"
 
 [implementer.constraints]
 must_follow = [
-    "conventions.toml anti-patterns (no project code, no worktrees, no secrets)",
-    "conventions.toml naming rules (/plan/*, /spec/*, impl/* strict matching)",
-    "conventions.toml script conventions (set -euo pipefail, idempotency)",
+    "plan/conventions.toml: anti-patterns, naming rules, script conventions",
+    "set -euo pipefail in all scripts",
+    "Idempotent: exit 1 if .bare already exists in root",
+    "Exit 0 on success, exit 1 with stderr message on failure",
 ]
 must_not = [
-    "Add features not specified in topology.toml or execution.toml",
-    "Over-engineer — implement what's requested, nothing more",
-    "Create abstractions for one-time operations",
-    "Add comments to code you didn't change",
+    "Add features not in spec (no --dry-run, no --verbose, no flags)",
+    "Over-engineer — one command, one job",
+    "Create GitHub repos or push to remotes",
+    "Make the script interactive (no prompts, no confirmations)",
 ]
 
 # -----------------------------------------------------------------------------
@@ -75,32 +82,41 @@ must_not = [
 # -----------------------------------------------------------------------------
 [reviewer]
 name = "Reviewer"
-role = "Verifier — critically analyzes the implementer's output for errors or gaps"
-blocked_until = "Implementer produces first draft"
+role = "Verifier — critically analyzes the implementer's output"
+blocked_until = "Implementer produces first draft of scaffold script"
 
 [reviewer.responsibilities]
 primary = [
-    "Wait for the implementer to complete Phase A before starting first review",
-    "After Phase A: Verify README.md covers all topics; ARCHITECTURE.md documents full lifecycle",
-    "After Phase B: Verify every branch fork relationship via git merge-base checks",
-    "After Phase B: Challenge idempotency — run init-branches.sh twice, expect no errors",
-    "After Phase B: Challenge naming edge cases — try feature names with slashes, spaces, special chars",
-    "After Phase C: Run verify-topology.sh; confirm exit code 0",
-    "After Phase C: Run new-feature.sh smoke test with a novel feature name",
-    "After all phases: Verify all V.1–V.10 checks from verification.toml pass",
-    "Flag issues with specific file:line references and send corrections back to Implementer",
-    "Verify fixes in subsequent review rounds before approving",
+    "Wait for implementer to produce scaffold script before starting",
+    "Verify scaffold creates exactly 31 branches (git --git-dir=.bare branch -a count)",
+    "Verify null branch is completely empty (0 tracked files, 1 empty commit)",
+    "Verify all 22 orphan branches have no parent (git merge-base returns nothing)",
+    "Verify front-end fork chain integrity: typography→color-scheme→navbar→footer→app-shell→hero, app-shell→homepage",
+    "Verify hero and homepage are siblings (both fork from app-shell, not from each other)",
+    "Verify back-end branches are all orphans (api and db are NOT forks of tech-stack)",
+    "Verify testing/front-end_navbar forks from impl/front-end_navbar",
+    "Verify bug-fixes/front-end_navbar-nav-fix forks from impl/front-end_navbar",
+    "Verify staging/v1, deployment/v1, deployment/v2 are orphans",
+    "Verify all non-null branches have README.md",
+    "Verify spec branches contain no implementation files (.ts, .js, .py, etc.)",
+    "Challenge idempotency: run scaffold twice on same project — second run must exit 1",
+    "Challenge edge cases: invalid project name, existing directory, git not in PATH",
+    "Challenge naming: spaces in branch names, special chars, path separator correctness",
+    "Verify all V.1–V.28 checks from plan/verification.toml",
+    "Flag issues and send corrections back to implementer",
+    "Verify fixes in subsequent review rounds",
 ]
 
 [reviewer.scrutiny_areas]
-fork_integrity = "git merge-base --is-ancestor check for every parent→child pair"
-idempotency = "Run every script twice; second run must succeed with no errors"
-naming_edge_cases = "Test: front-end/hero, back-end/api, shared/utils, multi/part/feature"
-error_handling = "Scripts must handle: no git repo, dirty working tree, branch already exists, invalid feature names"
-script_safety = "set -euo pipefail present; no unquoted variables; no silent failures"
-branch_content = "Spec branches must contain zero implementation files (.ts, .js, .py, etc.)"
-readme_presence = "Every branch must have a README.md explaining its role"
-no_scope_creep = "Template contains no application code, no CI configs, no framework scaffolds"
+branch_count = "Exactly 31 branches. No more, no less."
+orphan_integrity = "22 orphans must have no merge-base with any other branch."
+fork_integrity = "8 forks must have correct parent via merge-base --is-ancestor."
+null_emptiness = "0 tracked files, 1 empty commit."
+seed_content = "README.md on every non-null branch. .gitignore + src/ on tech-stack branches."
+script_safety = "set -euo pipefail. No unquoted variables. No silent failures."
+idempotency = "Re-run exits 1 with clear message."
+error_handling = "Invalid name, dir exists, no git — all exit 1 with stderr message."
+no_scope_creep = "No flags, no prompts, no remote operations, no application code."
 
 # -----------------------------------------------------------------------------
 # REVIEW ITERATION PROTOCOL
@@ -108,28 +124,28 @@ no_scope_creep = "Template contains no application code, no CI configs, no frame
 [iteration]
 max_rounds = 3
 protocol = """
-1. Implementer produces output for the current phase
-2. Reviewer audits the output against scrutiny areas
-3. Reviewer sends a structured review: {file:line, issue, severity, suggested_fix}
-4. Implementer addresses all issues or counters if the reviewer is wrong
+1. Implementer produces scaffold script
+2. Reviewer audits against scrutiny areas and verification.toml
+3. Reviewer sends structured review: {file:line, issue, severity, suggested_fix}
+4. Implementer addresses all issues or counters if reviewer is wrong
 5. Reviewer re-audits until all issues resolved
-6. When Reviewer approves the current phase, move to next phase
+6. When Reviewer approves, task is complete
 """
 
 [[iteration.severity_levels]]
 level = "CRITICAL"
-meaning = "Breaks the topology, creates security risk, or makes template unusable"
-action = "Must fix before moving to next phase"
+meaning = "Wrong branch count, broken fork chain, script exits silently on error"
+action = "Must fix before reviewer approves"
 
 [[iteration.severity_levels]]
 level = "MAJOR"
-meaning = "Violates conventions, missing edge case handling, incomplete documentation"
-action = "Must fix before phase completion"
+meaning = "Missing README on branch, wrong seed content, edge case not handled"
+action = "Must fix before reviewer approves"
 
 [[iteration.severity_levels]]
 level = "MINOR"
-meaning = "Style inconsistency, minor text tweaks, optional improvements"
-action = "Fix if time allows; must not block progress"
+meaning = "Style inconsistency, message wording, minor improvements"
+action = "Fix if time allows"
 
 # -----------------------------------------------------------------------------
 # COMPLETION CRITERIA
@@ -137,10 +153,11 @@ action = "Fix if time allows; must not block progress"
 [completion]
 statement = "Task is complete only when the Reviewer approves."
 requirements = [
-    "All V.1–V.10 checks from verification.toml pass",
+    "All V.1–V.28 checks from plan/verification.toml pass",
     "Reviewer has no open CRITICAL or MAJOR issues",
-    "init-branches.sh creates full topology in one command",
-    "new-feature.sh creates full feature chain for any valid feature path",
-    "verify-topology.sh exits 0 in all scenarios",
-    "All branches pushed to origin; GitHub template flag enabled",
+    "scaffold <valid-name> creates 31 branches with correct fork relationships",
+    "scaffold <valid-name> seeds correct files per branch type",
+    "scaffold <existing-name> exits 1",
+    "scaffold 'invalid name' exits 1",
+    "Script is idempotent and follows conventions",
 ]

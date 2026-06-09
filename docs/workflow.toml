@@ -1,0 +1,230 @@
+# =============================================================================
+# PROJECT SCAFFOLDING WORKFLOW SPECIFICATION
+# =============================================================================
+# Full recurring workflow for AI-assisted software engineering projects.
+# Developer runs `scaffold <project-name>` from any directory.
+# Script creates root folder with .bare git repo + all branch worktrees.
+# =============================================================================
+
+[workflow]
+version = "1.0.0"
+cli_command = "scaffold <project-name>"
+output = "<project-name>_root/"
+
+# -----------------------------------------------------------------------------
+# MULTI-REPO STRATEGY
+# -----------------------------------------------------------------------------
+[repos]
+dev = { account = "AI-agent accessible", purpose = "Active development with full branch topology" }
+backup = { account = "Personal private", purpose = "Mirrors dev repo for safety" }
+client = { account = "Deployment-only", purpose = "Main branch only, deployed containerized code" }
+scope = "This template covers the DEV repo only."
+
+# -----------------------------------------------------------------------------
+# BRANCH TOPOLOGY (chronological creation order)
+# -----------------------------------------------------------------------------
+
+[phases.utility]
+description = "Foundation branches — created first"
+order = 0
+
+[[phases.utility.branches]]
+name = "null"
+type = "orphan"
+purpose = "Empty branch for duplicating (not forking) when dev wants to upload to an empty branch"
+seeds = []
+
+[[phases.utility.branches]]
+name = "main"
+type = "orphan"
+purpose = "Development root. Placeholder README only."
+seeds = ["README.md"]
+
+[phases."1_planning"]
+description = "Brainstorming and context gathering — all orphans"
+order = 1
+
+[[phases."1_planning".branches]]
+name = "01_rough-plan"
+type = "orphan"
+purpose = "User chats with agent, brainstorms rough idea + MVP scope + later releases"
+consumes = []
+
+[[phases."1_planning".branches]]
+name = "02_context"
+type = "orphan"
+purpose = "Content fed from 01_rough-plan. Uses flowtress-docker/context resources to set context + precise scope"
+consumes = ["01_rough-plan"] # informational, not git fork
+
+[[phases."1_planning".branches]]
+name = "02_plan"
+type = "orphan"
+purpose = "Content fed from 02_context. Contains every detail of MVP scope demarcated in subfolders with .md + .toml"
+consumes = ["02_context"] # informational, not git fork
+
+[phases."2_standards"]
+description = "Design and code standards — orphan"
+order = 2
+
+[[phases."2_standards".branches]]
+name = "ui/impeccable"
+type = "orphan"
+purpose = "UI standards and anti-patterns for all platforms. Source: pbakaus/impeccable. Makes resources available locally instead of webfetch/GH API."
+source = "https://github.com/pbakaus/impeccable"
+
+[phases."3_specs"]
+description = "Feature specifications — all orphans, manual transport from 02_plan"
+order = 3
+
+[[phases."3_specs".branches]]
+name = "spec/front-end_tech-stack"
+type = "orphan"
+purpose = "Front-end technology decisions: frameworks, build tools, dependencies"
+
+[[phases."3_specs".branches]]
+name = "spec/back-end_tech-stack"
+type = "orphan"
+purpose = "Back-end technology decisions: runtime, framework, database"
+
+[[phases."3_specs".branches]]
+name = "spec/front-end_typography"
+type = "orphan"
+purpose = "Typography spec: font families, sizes, weights, combinations, heading-to-paragraph standards"
+
+[[phases."3_specs".branches]]
+name = "spec/front-end_color-scheme"
+type = "orphan"
+purpose = "Color scheme spec: brand colors, variations, combinations, WCAG AA contrast standards"
+
+[[phases."3_specs".branches]]
+name = "spec/front-end_navbar"
+type = "orphan"
+purpose = "Navbar spec: structure, UX copy, branding, anti-patterns"
+
+[[phases."3_specs".branches]]
+name = "spec/front-end_footer"
+type = "orphan"
+purpose = "Footer spec: structure, UX copy, branding, anti-patterns"
+
+[[phases."3_specs".branches]]
+name = "spec/front-end_app-shell"
+type = "orphan"
+purpose = "App shell spec: combined navbar+footer layout. Starting point for most pages."
+
+[[phases."3_specs".branches]]
+name = "spec/front-end_hero"
+type = "orphan"
+purpose = "Hero section spec: layout, content strategy, CTAs"
+
+[[phases."3_specs".branches]]
+name = "spec/front-end_homepage"
+type = "orphan"
+purpose = "Homepage spec: overall page composition, sections, content hierarchy"
+
+[phases."4_implementation"]
+description = "Feature implementation — mix of orphans and cascading fork chains"
+order = 4
+
+[[phases."4_implementation".branches]]
+name = "impl/front-end_tech-stack"
+type = "orphan"
+purpose = "Front-end boilerplate to confirm npm packages and dependencies work together. Agents should not customize. Place to resolve dependency conflicts early."
+seeds = ["src/", "README.md", ".gitignore"]
+
+[[phases."4_implementation".branches]]
+name = "impl/front-end_typography"
+type = "fork"
+parent = "impl/front-end_tech-stack"
+purpose = "All boilerplate removed. Typography decisions rendered on localhost: font sizes, weights, combinations, h1-to-p standards. Influenced by ui/impeccable."
+
+[[phases."4_implementation".branches]]
+name = "impl/front-end_color-scheme"
+type = "fork"
+parent = "impl/front-end_typography"
+purpose = "All boilerplate removed. Color scheme rendered on localhost: brand colors, variations, combinations, WCAG AA contrast. Influenced by ui/impeccable."
+
+[[phases."4_implementation".branches]]
+name = "impl/front-end_navbar"
+type = "fork"
+parent = "impl/front-end_color-scheme"
+purpose = "Navbar component. Boilerplate replaced with navbar-pertinent code. Specs from spec/front-end_navbar."
+
+[[phases."4_implementation".branches]]
+name = "impl/front-end_footer"
+type = "fork"
+parent = "impl/front-end_navbar"
+purpose = "Footer component. Boilerplate replaced with footer-pertinent code. Specs from spec/front-end_footer."
+
+[[phases."4_implementation".branches]]
+name = "impl/front-end_app-shell"
+type = "fork"
+parent = "impl/front-end_footer"
+purpose = "Combined navbar + footer layout. Starting point for all components and pages. Serves as parent for hero, homepage, and future pages."
+
+[[phases."4_implementation".branches]]
+name = "impl/front-end_hero"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Hero section implementation. Specs from spec/front-end_hero."
+
+[[phases."4_implementation".branches]]
+name = "impl/front-end_homepage"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Homepage implementation. Specs from spec/front-end_homepage."
+
+[[phases."4_implementation".branches]]
+name = "impl/back-end_tech-stack"
+type = "orphan"
+purpose = "Back-end boilerplate to confirm runtime and dependencies work together. No customization by agents."
+seeds = ["src/", "README.md", ".gitignore"]
+
+[[phases."4_implementation".branches]]
+name = "impl/back-end_api"
+type = "orphan"
+purpose = "Back-end API implementation. Standalone orphan, info from spec/back-end_tech-stack."
+
+[[phases."4_implementation".branches]]
+name = "impl/back-end_db"
+type = "orphan"
+purpose = "Back-end database implementation. Standalone orphan, info from spec/back-end_tech-stack."
+
+[phases."5_qa"]
+description = "Testing, staging, bug-fixes, deployment — created as examples, can be deleted later"
+order = 5
+
+[[phases."5_qa".branches]]
+name = "testing/front-end_navbar"
+type = "fork"
+parent = "impl/front-end_navbar"
+purpose = "Tests for navbar component. Only made if testing is necessary."
+
+[[phases."5_qa".branches]]
+name = "staging/v1"
+type = "orphan"
+purpose = "Staging branch for v1. Merges code from impl/ branches for integration testing."
+
+[[phases."5_qa".branches]]
+name = "bug-fixes/front-end_navbar-nav-fix"
+type = "fork"
+parent = "impl/front-end_navbar"
+purpose = "Bug fixes for navbar component."
+
+[[phases."5_qa".branches]]
+name = "deployment/v1"
+type = "orphan"
+purpose = "Production-ready code for v1 deployment. Merges commits from bug-fixes/ + staging/."
+
+[[phases."5_qa".branches]]
+name = "deployment/v2"
+type = "orphan"
+purpose = "Production-ready code for v2 deployment."
+
+# -----------------------------------------------------------------------------
+# BRANCH COUNT
+# -----------------------------------------------------------------------------
+[counts]
+total = 31
+orphans = 22
+forks = 8
+null_branch = 1

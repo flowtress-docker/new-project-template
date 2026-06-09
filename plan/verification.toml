@@ -1,0 +1,211 @@
+# =============================================================================
+# VERIFICATION PLAN — 31 branches
+# =============================================================================
+# All checks must pass before scaffold is considered complete.
+# =============================================================================
+
+# --- BRANCH EXISTENCE ---
+
+[[verify]]
+id = "V.1"
+name = "Branch count"
+command = "git --git-dir=.bare branch -a | wc -l"
+expect = "31 (or 31 + remote refs if pushed)"
+
+[[verify]]
+id = "V.2"
+name = "null branch exists and is empty"
+command = "git -C null rev-list --count HEAD && git -C null ls-files | wc -l"
+expect = "1 commit, 0 tracked files"
+
+[[verify]]
+id = "V.3"
+name = "main branch exists"
+command = "git --git-dir=.bare show-ref --verify refs/heads/main"
+expect = "Non-empty ref"
+
+# --- PLANNING BRANCHES ---
+
+[[verify]]
+id = "V.4"
+name = "01_rough-plan exists"
+command = "git --git-dir=.bare show-ref --verify refs/heads/01_rough-plan"
+
+[[verify]]
+id = "V.5"
+name = "02_context exists"
+command = "git --git-dir=.bare show-ref --verify refs/heads/02_context"
+
+[[verify]]
+id = "V.6"
+name = "02_plan exists"
+command = "git --git-dir=.bare show-ref --verify refs/heads/02_plan"
+
+# --- STANDARDS ---
+
+[[verify]]
+id = "V.7"
+name = "ui/impeccable exists"
+command = "git --git-dir=.bare show-ref --verify refs/heads/ui/impeccable"
+
+# --- SPEC BRANCHES (9) ---
+
+[[verify]]
+id = "V.8"
+name = "All 9 spec branches exist"
+command = """
+for b in spec/front-end_tech-stack spec/back-end_tech-stack \
+         spec/front-end_typography spec/front-end_color-scheme \
+         spec/front-end_navbar spec/front-end_footer \
+         spec/front-end_app-shell spec/front-end_hero \
+         spec/front-end_homepage; do
+    git --git-dir=.bare show-ref --verify "refs/heads/$b" || exit 1
+done
+"""
+
+[[verify]]
+id = "V.9"
+name = "Spec branches contain no implementation files"
+command = "find spec/ -name '*.ts' -o -name '*.js' -o -name '*.py' -o -name '*.go' -o -name '*.rs' -o -name '*.java'"
+expect = "No output"
+
+# --- ORPHAN INTEGRITY ---
+
+[[verify]]
+id = "V.10"
+name = "22 orphan branches have no parent (no merge base with any other branch)"
+command = """
+# Orphan list from topology.toml:
+for orphan in null main 01_rough-plan 02_context 02_plan ui/impeccable \
+              spec/front-end_tech-stack spec/back-end_tech-stack \
+              spec/front-end_typography spec/front-end_color-scheme \
+              spec/front-end_navbar spec/front-end_footer \
+              spec/front-end_app-shell spec/front-end_hero spec/front-end_homepage \
+              impl/front-end_tech-stack impl/back-end_tech-stack \
+              impl/back-end_api impl/back-end_db \
+              staging/v1 deployment/v1 deployment/v2; do
+    git --git-dir=.bare show-ref --verify "refs/heads/$orphan" || echo "MISSING: $orphan"
+done
+"""
+
+# --- FRONT-END FORK CHAIN INTEGRITY ---
+
+[[verify]]
+id = "V.11"
+name = "impl/front-end_typography is child of impl/front-end_tech-stack"
+command = "git --git-dir=.bare merge-base --is-ancestor impl/front-end_tech-stack impl/front-end_typography"
+
+[[verify]]
+id = "V.12"
+name = "impl/front-end_color-scheme is child of impl/front-end_typography"
+command = "git --git-dir=.bare merge-base --is-ancestor impl/front-end_typography impl/front-end_color-scheme"
+
+[[verify]]
+id = "V.13"
+name = "impl/front-end_navbar is child of impl/front-end_color-scheme"
+command = "git --git-dir=.bare merge-base --is-ancestor impl/front-end_color-scheme impl/front-end_navbar"
+
+[[verify]]
+id = "V.14"
+name = "impl/front-end_footer is child of impl/front-end_navbar"
+command = "git --git-dir=.bare merge-base --is-ancestor impl/front-end_navbar impl/front-end_footer"
+
+[[verify]]
+id = "V.15"
+name = "impl/front-end_app-shell is child of impl/front-end_footer"
+command = "git --git-dir=.bare merge-base --is-ancestor impl/front-end_footer impl/front-end_app-shell"
+
+[[verify]]
+id = "V.16"
+name = "impl/front-end_hero is child of impl/front-end_app-shell"
+command = "git --git-dir=.bare merge-base --is-ancestor impl/front-end_app-shell impl/front-end_hero"
+
+[[verify]]
+id = "V.17"
+name = "impl/front-end_homepage is child of impl/front-end_app-shell"
+command = "git --git-dir=.bare merge-base --is-ancestor impl/front-end_app-shell impl/front-end_homepage"
+
+[[verify]]
+id = "V.18"
+name = "impl/front-end_hero and impl/front-end_homepage are siblings (both fork from app-shell)"
+command = """
+git --git-dir=.bare merge-base --is-ancestor impl/front-end_app-shell impl/front-end_hero && \
+git --git-dir=.bare merge-base --is-ancestor impl/front-end_app-shell impl/front-end_homepage
+"""
+
+# --- BACK-END ORPHAN INTEGRITY ---
+
+[[verify]]
+id = "V.19"
+name = "impl/back-end_api is child of NO branch (orphan)"
+command = "git --git-dir=.bare merge-base impl/back-end_api impl/back-end_tech-stack || true"
+expect = "No merge base (both orphans)"
+
+[[verify]]
+id = "V.20"
+name = "impl/back-end_db is child of NO branch (orphan)"
+command = "git --git-dir=.bare merge-base impl/back-end_db impl/back-end_tech-stack || true"
+expect = "No merge base (both orphans)"
+
+# --- QA BRANCHES ---
+
+[[verify]]
+id = "V.21"
+name = "testing/front-end_navbar is child of impl/front-end_navbar"
+command = "git --git-dir=.bare merge-base --is-ancestor impl/front-end_navbar testing/front-end_navbar"
+
+[[verify]]
+id = "V.22"
+name = "bug-fixes/front-end_navbar-nav-fix is child of impl/front-end_navbar"
+command = "git --git-dir=.bare merge-base --is-ancestor impl/front-end_navbar bug-fixes/front-end_navbar-nav-fix"
+
+[[verify]]
+id = "V.23"
+name = "staging/v1 exists"
+command = "git --git-dir=.bare show-ref --verify refs/heads/staging/v1"
+
+[[verify]]
+id = "V.24"
+name = "deployment/v1 exists"
+command = "git --git-dir=.bare show-ref --verify refs/heads/deployment/v1"
+
+[[verify]]
+id = "V.25"
+name = "deployment/v2 exists"
+command = "git --git-dir=.bare show-ref --verify refs/heads/deployment/v2"
+
+# --- README PRESENCE ---
+
+[[verify]]
+id = "V.26"
+name = "All non-null branches have README.md"
+command = """
+for b in main 01_rough-plan 02_context 02_plan ui/impeccable \
+         spec/front-end_tech-stack spec/back-end_tech-stack \
+         spec/front-end_typography spec/front-end_color-scheme \
+         spec/front-end_navbar spec/front-end_footer \
+         spec/front-end_app-shell spec/front-end_hero spec/front-end_homepage \
+         impl/front-end_tech-stack impl/front-end_typography impl/front-end_color-scheme \
+         impl/front-end_navbar impl/front-end_footer impl/front-end_app-shell \
+         impl/front-end_hero impl/front-end_homepage \
+         impl/back-end_tech-stack impl/back-end_api impl/back-end_db \
+         testing/front-end_navbar staging/v1 \
+         bug-fixes/front-end_navbar-nav-fix deployment/v1 deployment/v2; do
+    git show "$b:README.md" -- >/dev/null 2>&1 || echo "MISSING README: $b"
+done
+"""
+expect = "No MISSING output"
+
+# --- NULL BRANCH INTEGRITY ---
+
+[[verify]]
+id = "V.27"
+name = "null branch is completely empty (no tracked files)"
+command = "git -C null ls-files"
+expect = "No output"
+
+[[verify]]
+id = "V.28"
+name = "null branch has exactly 1 commit (empty)"
+command = "git -C null rev-list --count HEAD"
+expect = "1"

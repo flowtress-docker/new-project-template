@@ -1,72 +1,72 @@
 # Branch Topology — scaffold_2
 
 ```mermaid
-git-branchDiagram
+flowchart TB
     direction TB
 
     %% Phase 0 — Utility
-    group Phase_0__Utility[Phase 0 — Utility]
-        main[main]
-        null[null]
-    end group
+    subgraph phase0["Phase 0 — Utility"]
+        main0["main"]
+        null0["null"]
+    end
 
     %% Phase 1 — Planning
-    group Phase_1__Planning[Phase 1 — Planning]
-        p01_rough[01_rough-plan]
-        p02_context[02_context]
-        p02_plan[02_plan]
-    end group
+    subgraph phase1["Phase 1 — Planning"]
+        p01["01_rough-plan"]
+        p02c["02_context"]
+        p02p["02_plan"]
+    end
 
     %% Phase 2 — Standards
-    group Phase_2__Standards[Phase 2 — Standards]
-        ui_impeccable[ui/impeccable]
-    end group
+    subgraph phase2["Phase 2 — Standards"]
+        ui_imp["ui/impeccable"]
+    end
 
     %% Phase 3 — Specs
-    group Phase_3__Specs[Phase 3 — Specs (orphan)]
-        s_fe_tech[spec/front-end_tech-stack]
-        s_be_tech[spec/back-end_tech-stack]
-        s_fe_typ[spec/front-end_typography]
-        s_fe_color[spec/front-end_color-scheme]
-        s_fe_nav[spec/front-end_navbar]
-        s_fe_foot[spec/front-end_footer]
-        s_fe_shell[spec/front-end_app-shell]
-        s_fe_hero[spec/front-end_hero]
-        s_fe_home[spec/front-end_homepage]
-    end group
+    subgraph phase3["Phase 3 — Specs"]
+        s_fe_tech["spec/front-end_tech-stack"]
+        s_be_tech["spec/back-end_tech-stack"]
+        s_fe_typ["spec/front-end_typography"]
+        s_fe_color["spec/front-end_color-scheme"]
+        s_fe_nav["spec/front-end_navbar"]
+        s_fe_foot["spec/front-end_footer"]
+        s_fe_shell["spec/front-end_app-shell"]
+        s_fe_hero["spec/front-end_hero"]
+        s_fe_home["spec/front-end_homepage"]
+    end
 
     %% Phase 4 — Testing
-    group Phase_4__Testing[Phase 4 — Testing (fork of spec)]
-        t_fe_typ{{"testing/front-end_typography<br/><i>fork of spec/front-end_typography</i>"}}
-        t_fe_color{{"testing/front-end_color-scheme<br/><i>fork of spec/front-end_color-scheme</i>"}}
-        t_fe_nav{{"testing/front-end_navbar<br/><i>fork of spec/front-end_navbar</i>"}}
-        t_fe_foot{{"testing/front-end_footer<br/><i>fork of spec/front-end_footer</i>"}}
-        t_fe_shell{{"testing/front-end_app-shell<br/><i>fork of spec/front-end_app-shell</i>"}}
-        t_fe_hero{{"testing/front-end_hero<br/><i>fork of spec/front-end_hero</i>"}}
-        t_fe_home{{"testing/front-end_homepage<br/><i>fork of spec/front-end_homepage</i>"}}
-        t_be_tech{{"testing/back-end_tech-stack<br/><i>fork of spec/back-end_tech-stack</i>"}}
-    end group
+    subgraph phase4["Phase 4 — Testing"]
+        t_fe_typ["testing/front-end_typography"]
+        t_fe_color["testing/front-end_color-scheme"]
+        t_fe_nav["testing/front-end_navbar"]
+        t_fe_foot["testing/front-end_footer"]
+        t_fe_shell["testing/front-end_app-shell"]
+        t_fe_hero["testing/front-end_hero"]
+        t_fe_home["testing/front-end_homepage"]
+        t_be_tech["testing/back-end_tech-stack"]
+    end
 
     %% Phase 5 — Implementation
-    group Phase_5__Impl[Phase 5 — Implementation]
-        i_fe_tech[impl/front-end_tech-stack]
-        i_be_tech[impl/back-end_tech-stack]
-        i_fe_shell[impl/front-end_app-shell]
-        i_fe_typ{{"impl/front-end_typography<br/><i>fork of impl/front-end_app-shell</i>"}}
-        i_fe_color{{"impl/front-end_color-scheme<br/><i>fork of impl/front-end_app-shell</i>"}}
-        i_fe_nav{{"impl/front-end_navbar<br/><i>fork of impl/front-end_app-shell</i>"}}
-        i_fe_foot{{"impl/front-end_footer<br/><i>fork of impl/front-end_app-shell</i>"}}
-        i_fe_hero{{"impl/front-end_hero<br/><i>fork of impl/front-end_app-shell</i>"}}
-        i_fe_home{{"impl/front-end_homepage<br/><i>fork of impl/front-end_app-shell</i>"}}
-    end group
+    subgraph phase5["Phase 5 — Implementation"]
+        i_fe_tech["impl/front-end_tech-stack"]
+        i_be_tech["impl/back-end_tech-stack"]
+        i_fe_shell["impl/front-end_app-shell"]
+        i_fe_typ["impl/front-end_typography"]
+        i_fe_color["impl/front-end_color-scheme"]
+        i_fe_nav["impl/front-end_navbar"]
+        i_fe_foot["impl/front-end_footer"]
+        i_fe_hero["impl/front-end_hero"]
+        i_fe_home["impl/front-end_homepage"]
+    end
 
     %% Phase 7 — QA
-    group Phase_7__QA[Phase 7 — QA]
-        stg_v1{{"staging/v1<br/><i>fork of impl/front-end_app-shell</i>"}}
-        bf_nav{{"bug-fixes/front-end_navbar-nav-fix<br/><i>fork of impl/front-end_navbar</i>"}}
-        dep_v1[deployment/v1]
-        dep_v2[deployment/v2]
-    end group
+    subgraph phase7["Phase 7 — QA"]
+        stg_v1["staging/v1"]
+        bf_nav["bug-fixes/front-end_navbar-nav-fix"]
+        dep_v1["deployment/v1"]
+        dep_v2["deployment/v2"]
+    end
 
     %% Fork relationships (solid — git inheritance)
     s_fe_typ --> t_fe_typ
@@ -85,43 +85,45 @@ git-branchDiagram
     i_fe_shell --> i_fe_hero
     i_fe_shell --> i_fe_home
 
-    i_fe_shell --> stg_v1
-    i_fe_nav --> bf_nav
+    i_fe_shell -.-> stg_v1
+    i_fe_nav -.-> bf_nav
 
     %% Quasi-dependencies (dashed — informational flow)
-    p01_rough -.-> p02_context
-    p02_context -.-> p02_plan
-    p02_plan -.-> s_fe_tech
-    p02_plan -.-> s_be_tech
-    p02_plan -.-> s_fe_typ
-    p02_plan -.-> s_fe_color
-    p02_plan -.-> s_fe_nav
-    p02_plan -.-> s_fe_foot
-    p02_plan -.-> s_fe_shell
-    p02_plan -.-> s_fe_hero
-    p02_plan -.-> s_fe_home
+    p01 -.-> p02c
+    p02c -.-> p02p
+    p02p -.-> s_fe_tech
+    p02p -.-> s_be_tech
+    p02p -.-> s_fe_typ
+    p02p -.-> s_fe_color
+    p02p -.-> s_fe_nav
+    p02p -.-> s_fe_foot
+    p02p -.-> s_fe_shell
+    p02p -.-> s_fe_hero
+    p02p -.-> s_fe_home
 
-    ui_impeccable -.-> i_fe_tech
-    ui_impeccable -.-> i_fe_typ
-    ui_impeccable -.-> i_fe_color
-    ui_impeccable -.-> i_fe_nav
-    ui_impeccable -.-> i_fe_foot
-    ui_impeccable -.-> i_fe_shell
-    ui_impeccable -.-> i_fe_hero
-    ui_impeccable -.-> i_fe_home
+    ui_imp -.-> i_fe_tech
+    ui_imp -.-> i_fe_typ
+    ui_imp -.-> i_fe_color
+    ui_imp -.-> i_fe_nav
+    ui_imp -.-> i_fe_foot
+    ui_imp -.-> i_fe_shell
+    ui_imp -.-> i_fe_hero
+    ui_imp -.-> i_fe_home
 
     stg_v1 -.-> dep_v1
 
-    %% Legend
-    legend
-        shape branch(1,plain)[orphan branch]
-        shape fork(1,stroke:#8B0000,stroke-width:2px)[fork branch]
-        direction LR
-        _:phantom[___phantom___]
-        ====:solid line[fork parent → child]
-        -.-:dashed line[quasi-dependency info flow]
-    end legend
+    %% Styles
+    classDef orphan fill:#f9f,stroke:#333,stroke-width:2px
+    classDef fork fill:#bbf,stroke:#8B0000,stroke-width:2px
+    class main0,null0,p01,p02c,p02p,ui_imp,i_fe_tech,i_be_tech,i_fe_shell,dep_v1,dep_v2 orphan
+    class t_fe_typ,t_fe_color,t_fe_nav,t_fe_foot,t_fe_shell,t_fe_hero,t_fe_home,t_be_tech,i_fe_typ,i_fe_color,i_fe_nav,i_fe_foot,i_fe_hero,i_fe_home,stg_v1,bf_nav fork
 ```
+
+**Legend**
+- Rectangle node = orphan branch (no git parent)
+- Rounded rectangle node = fork branch (git parent-child)
+- Solid arrow = git fork inheritance
+- Dashed arrow = quasi-dependency (informational flow only)
 
 ## Branch Counts
 

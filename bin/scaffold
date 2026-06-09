@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'echo "ERROR: Scaffold failed. Remove ${ROOT_DIR:-<project-name>_root} manually." >&2; exit 1' ERR
 
 # =============================================================================
 # scaffold — Create project scaffolding with 31 branch worktrees
@@ -27,8 +28,8 @@ fi
 
 ROOT_DIR="${PROJECT_NAME}_root"
 
-if [ -d "$ROOT_DIR" ]; then
-    echo "ERROR: '$ROOT_DIR' already exists." >&2
+if [ -d "$ROOT_DIR/.bare" ]; then
+    echo "ERROR: Project already scaffolded. '$ROOT_DIR/.bare' exists." >&2
     exit 1
 fi
 
@@ -56,7 +57,7 @@ create_orphan() {
 
     echo "Creating branch: $branch [orphan]"
 
-    $GIT worktree add -b "$branch" --orphan "$ROOT_DIR/$branch" >/dev/null 2>&1
+    $GIT worktree add -b "$branch" --orphan "$ROOT_DIR/$branch" >/dev/null
 
     if [ -n "$readme" ]; then
         printf '%s\n' "$readme" > "$ROOT_DIR/$branch/README.md"
@@ -96,17 +97,17 @@ create_fork() {
 
     echo "Creating branch: $branch [fork of $parent]"
 
-    $GIT branch "$branch" "$parent" >/dev/null 2>&1
-    $GIT worktree add "$ROOT_DIR/$branch" "$branch" >/dev/null 2>&1
+    $GIT branch "$branch" "$parent" >/dev/null
+    $GIT worktree add "$ROOT_DIR/$branch" "$branch" >/dev/null
 }
 
 # =============================================================================
 # Phase 1 — Utility Branches
 # =============================================================================
 
-$GIT worktree add -b null --orphan "$ROOT_DIR/null" >/dev/null 2>&1
-git -C "$ROOT_DIR/null" commit --allow-empty -m "chore: null branch — duplication source" >/dev/null 2>&1
 echo "Creating branch: null [orphan]"
+$GIT worktree add -b null --orphan "$ROOT_DIR/null" >/dev/null
+git -C "$ROOT_DIR/null" commit --allow-empty -m "chore: null branch — duplication source" >/dev/null 2>&1
 
 create_orphan "main" "# $PROJECT_NAME" ""
 
@@ -208,7 +209,7 @@ for spec_branch in spec/front-end_tech-stack spec/back-end_tech-stack \
     spec_name="${spec_branch##*/}"
     spec_dir="$ROOT_DIR/$spec_branch"
 
-    $GIT worktree add -b "$spec_branch" --orphan "$spec_dir" >/dev/null 2>&1
+    $GIT worktree add -b "$spec_branch" --orphan "$spec_dir" >/dev/null
     printf '%s\n' "${SPEC_README//SPECNAME/$spec_name}" > "$spec_dir/README.md"
     mkdir -p "$spec_dir/spec"
     touch "$spec_dir/spec/.gitkeep"
@@ -336,3 +337,5 @@ echo ""
 echo "Scaffolded ${PROJECT_NAME}_root with 31 branches."
 echo ""
 echo "Next: cd ${PROJECT_NAME}_root && git --git-dir=.bare worktree list"
+
+exit 0

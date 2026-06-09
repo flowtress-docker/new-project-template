@@ -102,14 +102,14 @@ main() {
         failed=1
     fi
 
-    # T6: 31 branches exist
-    echo "[T6] 31 branches exist"
+    # T6: 36 branches exist
+    echo "[T6] 36 branches exist"
     local count
     count=$(git --git-dir="$TEST_DIR/my-app_root/.bare" branch -a | wc -l)
-    if [[ "$count" -ge 31 ]]; then
-        echo "  PASS ($count branches)"
+    if [[ "$count" -eq 36 ]]; then
+        echo "  PASS (36 branches)"
     else
-        echo "  FAIL: only $count branches (expected 31)"
+        echo "  FAIL: $count branches (expected 36)"
         failed=1
     fi
 

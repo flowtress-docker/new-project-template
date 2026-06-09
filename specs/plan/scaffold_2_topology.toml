@@ -363,6 +363,10 @@ branches = [
 chain = "staging-from-app-shell"
 branches = ["staging/v1"]
 
+[[fork_chains]]
+chain = "bug-fixes-from-navbar"
+branches = ["bug-fixes/front-end_navbar-nav-fix"]
+
 # =============================================================================
 # ORPHAN BRANCHES
 # =============================================================================
@@ -413,6 +417,6 @@ name = "deployment/v2"
 # =============================================================================
 
 [counts]
-total = 31
-orphans = 20
-forks = 11
+total = 36
+orphans = 21
+forks = 15

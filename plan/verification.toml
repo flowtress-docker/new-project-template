@@ -197,7 +197,7 @@ for b in main 01_rough-plan 02_context 02_plan ui/impeccable \
          impl/back-end_tech-stack impl/back-end_api impl/back-end_db \
          testing/front-end_navbar staging/v1 \
          bug-fixes/front-end_navbar-nav-fix deployment/v1 deployment/v2; do
-    git show "$b:README.md" -- >/dev/null 2>&1 || echo "MISSING README: $b"
+    git --git-dir=.bare show "$b:README.md" -- >/dev/null 2>&1 || echo "MISSING README: $b"
 done
 """
 expect = "No MISSING output"
@@ -207,11 +207,11 @@ expect = "No MISSING output"
 [[verify]]
 id = "V.27"
 name = "null branch is completely empty (no tracked files)"
-command = "git -C null ls-files"
+command = "git --git-dir=.bare ls-tree --name-only -r null"
 expect = "No output"
 
 [[verify]]
 id = "V.28"
 name = "null branch has exactly 1 commit (empty)"
-command = "git -C null rev-list --count HEAD"
+command = "git --git-dir=.bare rev-list --count null"
 expect = "1"

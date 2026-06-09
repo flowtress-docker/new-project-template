@@ -1,0 +1,168 @@
+# =============================================================================
+# CONVENTIONS & CONSTRAINTS — scaffold_2
+# =============================================================================
+# Rules for agents implementing and maintaining scaffold_2.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TOOL PREFERENCES
+# -----------------------------------------------------------------------------
+[tools]
+file_creation = "Write"
+file_editing = "Edit"
+code_search = "Grep"
+file_pattern_search = "Glob"
+file_reading = "Read"
+git_operations = "Bash"
+script_execution = "Bash"
+
+[tools.avoid]
+"bash grep" = "Use Grep tool instead"
+"cat/head/tail" = "Use Read tool instead"
+"find/ls" = "Use Glob tool instead"
+"echo/heredoc for file creation" = "Use Write tool instead"
+
+# -----------------------------------------------------------------------------
+# ANTI-PATTERNS
+# -----------------------------------------------------------------------------
+[[antipatterns]]
+rule = "No project code in template"
+reason = "Pure topology template. Seed files are minimal READMEs only."
+
+[[antipatterns]]
+rule = "No git worktree creation by agents"
+reason = "scaffold_2 script creates worktrees. Agents use existing worktrees only."
+
+[[antipatterns]]
+rule = "No embedded secrets"
+reason = "No tokens, API keys, or environment-specific values."
+
+[[antipatterns]]
+rule = "No interactive scripts"
+reason = "scaffold_2 is automation-first. No prompts. No confirmations."
+
+[[antipatterns]]
+rule = "Keep READMEs concise"
+reason = "One paragraph per README explaining the branch role."
+
+[[antipatterns]]
+rule = "No over-engineering"
+reason = "Implement what's specified. No extras."
+
+# -----------------------------------------------------------------------------
+# BRANCH NAMING CONVENTIONS
+# -----------------------------------------------------------------------------
+
+[naming.null_branch]
+name = "null"
+type = "orphan"
+purpose = "Empty branch for duplicating. Developers duplicate (not fork) this branch."
+rule = "Never fork null. Always duplicate (create new orphan from same empty commit)."
+
+[naming.planning_branches]
+prefixes = ["01_rough-plan", "02_context", "02_plan"]
+type = "orphan"
+rule = "Numbered planning phases. Created in order but no git parent-child relationship."
+
+[naming.standards_branches]
+prefixes = ["ui/"]
+type = "orphan"
+rule = "Standards and reference branches. ui/impeccable is the only v1 standard."
+
+[naming.spec_branches]
+prefix = "spec/"
+type = "orphan"
+pattern = "spec/<front-end or back-end prefix>_<feature-name>"
+examples = ["spec/front-end_navbar", "spec/back-end_tech-stack"]
+rule = "Path separators → underscores. All spec branches are orphans."
+
+[naming.testing_branches]
+prefix = "testing/"
+type = "fork"
+pattern = "testing/<prefix>_<feature>"
+rule = "Testing branches are forks of their corresponding spec/* branches. One testing branch per spec branch."
+
+[naming.impl_branches]
+prefix = "impl/"
+type = "orphan or fork"
+pattern = "impl/<prefix>_<feature-name>"
+orphan_examples = ["impl/front-end_tech-stack", "impl/front-end_app-shell", "impl/back-end_tech-stack"]
+fork_examples = ["impl/front-end_navbar (fork of impl/front-end_app-shell)"]
+rule = "Tech-stack and app-shell branches are orphans. Feature branches fork from impl/front-end_app-shell."
+
+[naming.impl_app_shell]
+rule = "impl/front-end_app-shell is the merge target for navbar + footer. It is the fork parent for most impl/* branches and for staging/v1."
+
+[naming.staging_branches]
+prefix = "staging/"
+type = "fork"
+pattern = "staging/v<version-number>"
+example = "staging/v1 (fork of impl/front-end_app-shell)"
+rule = "Staging branches are forks of impl/front-end_app-shell."
+
+[naming.bugfix_branches]
+prefix = "bug-fixes/"
+type = "fork"
+pattern = "bug-fixes/<branch-name>-<fix-description>"
+example = "bug-fixes/front-end_navbar-nav-fix (fork of impl/front-end_navbar)"
+rule = "Bug fix branches are forks of impl/* or staging/*."
+
+[naming.deployment_branches]
+prefix = "deployment/"
+type = "orphan"
+pattern = "deployment/v<version-number>"
+example = "deployment/v1"
+rule = "Deployment branches are orphans. Each version is a deployment artifact."
+
+# -----------------------------------------------------------------------------
+# SCRIPT CONVENTIONS
+# -----------------------------------------------------------------------------
+[scripts]
+language = "bash"
+shebang = "#!/usr/bin/env bash"
+safety_flags = "set -euo pipefail"
+idempotency = "scaffold_2 checks if .bare exists in root before creating. If exists, exit 1."
+exit_codes = "0 = success, 1 = error with message to stderr"
+path_style = "Explicit absolute paths. Every worktree path prefixed with <project-name>_root/. E.g.: git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan null \"<project-name>_root/null\""
+
+# -----------------------------------------------------------------------------
+# COMMIT CONVENTIONS
+# -----------------------------------------------------------------------------
+[commits]
+style = "conventional commits"
+examples = [
+    "chore: null branch — duplication source",
+    "chore: initial placeholder commit",
+    "chore: 01_rough-plan — brainstorming space",
+    "chore: 02_context — scope setting",
+    "chore: 02_plan — detailed planning",
+    "chore: ui/impeccable — UI standards",
+    "chore: spec/<feature> — specification",
+    "chore: testing/<feature> — test setup",
+    "chore: impl/<feature> — implementation",
+    "chore: staging/v1 — integration staging",
+    "chore: bug-fixes/<desc> — bug fix",
+    "chore: deployment/v1 — production deployment",
+]
+
+# -----------------------------------------------------------------------------
+# DEVELOPER DISCRETION RULES
+# -----------------------------------------------------------------------------
+[discretion]
+note = "These are NOT scaffold_2 functions. They are documented decisions that guide developer workflow."
+
+[[discretion.items]]
+rule = "Orphan/fork decisions at runtime"
+reason = "Developer decides which branches to fork, merge, or skip at runtime. scaffold_2 creates the topology; developer controls the flow."
+
+[[discretion.items]]
+rule = "Testing loop is developer-driven"
+reason = "The spec → testing → impl → staging flow is the intended pattern. Developer may skip testing for minor features."
+
+[[discretion.items]]
+rule = "App-shell merge order"
+reason = "impl/front-end_navbar and impl/front-end_footer merge into impl/front-end_app-shell in whatever order developer chooses."
+
+[[discretion.items]]
+rule = "Back-end merges to staging"
+reason = "impl/back-end_tech-stack merges to staging/v1 for integration. Developer decides when this happens."

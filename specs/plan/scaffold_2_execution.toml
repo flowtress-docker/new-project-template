@@ -1,0 +1,338 @@
+# =============================================================================
+# EXECUTION STRATEGY — scaffold_2
+# =============================================================================
+# Ordered phases for the scaffold_2 CLI script.
+# All branches created upfront. Explicit paths throughout.
+# =============================================================================
+
+[meta]
+script_name = "scaffold_2"
+version = "2.0.0"
+approach = "create-all-upfront"
+total_phases = 7
+
+# =============================================================================
+# PHASE 0 — PREFLIGHT
+# =============================================================================
+
+[phase_0]
+label = "Preflight"
+order = 0
+
+[[phase_0.steps]]
+id = "P.0"
+action = "Trim project name whitespace"
+command = "PROJECT_NAME=$(echo \"$1\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
+[[phase_0.steps]]
+id = "P.1"
+action = "Validate project name"
+check = "Alphanumeric, hyphens, underscores. No spaces. Not empty."
+on_fail = "Exit 1: 'Invalid project name: <name>'"
+
+[[phase_0.steps]]
+id = "P.2"
+action = "Check root directory does not exist"
+check = "<project-name>_root/ must not exist"
+on_fail = "Exit 1: '<name>_root already exists'"
+
+[[phase_0.steps]]
+id = "P.3"
+action = "Verify git is available"
+check = "git --version returns successfully"
+on_fail = "Exit 1: 'git is not installed or not in PATH'"
+
+[[phase_0.steps]]
+id = "P.4"
+action = "Create root directory and init bare repo"
+commands = [
+    "mkdir \"<project-name>_root\"",
+    "git init --bare \"<project-name>_root/.bare\"",
+]
+
+# =============================================================================
+# PHASE 1 — UTILITY BRANCHES
+# =============================================================================
+
+[phase_1]
+label = "Utility Branches (null, main)"
+order = 1
+
+[[phase_1.steps]]
+id = "U.1"
+action = "Create null branch worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan null \"<project-name>_root/null\""
+
+[[phase_1.steps]]
+id = "U.2"
+action = "Create null initial commit"
+command = "git -C \"<project-name>_root/null\" commit --allow-empty -m 'chore: null branch — duplication source'"
+
+[[phase_1.steps]]
+id = "U.3"
+action = "Create main branch worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan main \"<project-name>_root/main\""
+
+[[phase_1.steps]]
+id = "U.4"
+action = "Seed main README.md and commit"
+command = "Write README.md from seed-templates, git -C \"<project-name>_root/main\" add -A && git -C \"<project-name>_root/main\" commit -m 'chore: initial placeholder commit'"
+
+# =============================================================================
+# PHASE 2 — PLANNING BRANCHES
+# =============================================================================
+
+[phase_2]
+label = "Planning Branches (01_rough-plan, 02_context, 02_plan)"
+order = 2
+
+[[phase_2.steps]]
+id = "PL.1"
+action = "Create 01_rough-plan worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan 01_rough-plan \"<project-name>_root/01_rough-plan\""
+
+[[phase_2.steps]]
+id = "PL.2"
+action = "Seed 01_rough-plan and commit"
+command = "Write README.md from seed-templates, git -C \"<project-name>_root/01_rough-plan\" add -A && git -C \"<project-name>_root/01_rough-plan\" commit -m 'chore: 01_rough-plan — brainstorming space'"
+
+[[phase_2.steps]]
+id = "PL.3"
+action = "Create 02_context worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan 02_context \"<project-name>_root/02_context\""
+
+[[phase_2.steps]]
+id = "PL.4"
+action = "Seed 02_context and commit"
+command = "Write README.md + CONTEXT.md from seed-templates, git -C \"<project-name>_root/02_context\" add -A && git -C \"<project-name>_root/02_context\" commit -m 'chore: 02_context — scope setting'"
+
+[[phase_2.steps]]
+id = "PL.5"
+action = "Create 02_plan worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan 02_plan \"<project-name>_root/02_plan\""
+
+[[phase_2.steps]]
+id = "PL.6"
+action = "Seed 02_plan and commit"
+command = "Write README.md + mkdir plan/, git -C \"<project-name>_root/02_plan\" add -A && git -C \"<project-name>_root/02_plan\" commit -m 'chore: 02_plan — detailed planning'"
+
+# =============================================================================
+# PHASE 3 — STANDARDS
+# =============================================================================
+
+[phase_3]
+label = "Standards (ui/impeccable)"
+order = 3
+
+[[phase_3.steps]]
+id = "ST.1"
+action = "Create ui/impeccable worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan ui/impeccable \"<project-name>_root/ui\""
+
+[[phase_3.steps]]
+id = "ST.2"
+action = "Seed ui/impeccable and commit"
+command = "Write README.md from seed-templates, git -C \"<project-name>_root/ui\" add -A && git -C \"<project-name>_root/ui\" commit -m 'chore: ui/impeccable — UI standards'"
+
+# =============================================================================
+# PHASE 4 — SPEC BRANCHES (9 orphans)
+# =============================================================================
+
+[phase_4]
+label = "Spec Branches"
+order = 4
+
+[[phase_4.steps]]
+id = "SP.1"
+action = "Create all 9 spec branch worktrees"
+command = """
+for branch in spec/front-end_tech-stack spec/back-end_tech-stack \\
+             spec/front-end_typography spec/front-end_color-scheme \\
+             spec/front-end_navbar spec/front-end_footer \\
+             spec/front-end_app-shell spec/front-end_hero \\
+             spec/front-end_homepage; do
+    git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan \"$branch\" \"<project-name>_root/$branch\"
+    mkdir -p \"<project-name>_root/$branch/spec\"
+    cat > \"<project-name>_root/$branch/README.md\" << 'READMEEOF'
+# Spec: ${branch##*/}
+
+Specification for ${branch##*/}.
+
+Contents:
+- Code behavior definition
+- Branding requirements
+- UX copy
+- Anti-patterns to avoid
+- Visualizations (if needed for approval)
+
+No implementation code on this branch.
+READMEEOF
+    git -C \"<project-name>_root/$branch\" add -A
+    git -C \"<project-name>_root/$branch\" commit -m \"chore: $branch — specification\"
+done
+"""
+
+# =============================================================================
+# PHASE 5 — TESTING BRANCHES (8 forks of spec)
+# =============================================================================
+
+[phase_5]
+label = "Testing Branches (forks of spec)"
+order = 5
+
+[[phase_5.steps]]
+id = "T.1"
+action = "Create testing/front-end_typography (fork of spec/front-end_typography)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch testing/front-end_typography spec/front-end_typography && git --git-dir=\"<project-name>_root/.bare\" worktree add testing/front-end_typography \"<project-name>_root/testing/front-end_typography\""
+
+[[phase_5.steps]]
+id = "T.2"
+action = "Create testing/front-end_color-scheme (fork of spec/front-end_color-scheme)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch testing/front-end_color-scheme spec/front-end_color-scheme && git --git-dir=\"<project-name>_root/.bare\" worktree add testing/front-end_color-scheme \"<project-name>_root/testing/front-end_color-scheme\""
+
+[[phase_5.steps]]
+id = "T.3"
+action = "Create testing/front-end_navbar (fork of spec/front-end_navbar)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch testing/front-end_navbar spec/front-end_navbar && git --git-dir=\"<project-name>_root/.bare\" worktree add testing/front-end_navbar \"<project-name>_root/testing/front-end_navbar\""
+
+[[phase_5.steps]]
+id = "T.4"
+action = "Create testing/front-end_footer (fork of spec/front-end_footer)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch testing/front-end_footer spec/front-end_footer && git --git-dir=\"<project-name>_root/.bare\" worktree add testing/front-end_footer \"<project-name>_root/testing/front-end_footer\""
+
+[[phase_5.steps]]
+id = "T.5"
+action = "Create testing/front-end_app-shell (fork of spec/front-end_app-shell)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch testing/front-end_app-shell spec/front-end_app-shell && git --git-dir=\"<project-name>_root/.bare\" worktree add testing/front-end_app-shell \"<project-name>_root/testing/front-end_app-shell\""
+
+[[phase_5.steps]]
+id = "T.6"
+action = "Create testing/front-end_hero (fork of spec/front-end_hero)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch testing/front-end_hero spec/front-end_hero && git --git-dir=\"<project-name>_root/.bare\" worktree add testing/front-end_hero \"<project-name>_root/testing/front-end_hero\""
+
+[[phase_5.steps]]
+id = "T.7"
+action = "Create testing/front-end_homepage (fork of spec/front-end_homepage)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch testing/front-end_homepage spec/front-end_homepage && git --git-dir=\"<project-name>_root/.bare\" worktree add testing/front-end_homepage \"<project-name>_root/testing/front-end_homepage\""
+
+[[phase_5.steps]]
+id = "T.8"
+action = "Create testing/back-end_tech-stack (fork of spec/back-end_tech-stack)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch testing/back-end_tech-stack spec/back-end_tech-stack && git --git-dir=\"<project-name>_root/.bare\" worktree add testing/back-end_tech-stack \"<project-name>_root/testing/back-end_tech-stack\""
+
+# =============================================================================
+# PHASE 6 — IMPLEMENTATION BRANCHES
+# =============================================================================
+
+[phase_6]
+label = "Implementation Branches"
+order = 6
+
+# --- Front-end tech-stack (orphan) ---
+
+[[phase_6.steps]]
+id = "IM.1"
+action = "Create impl/front-end_tech-stack worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan impl/front-end_tech-stack \"<project-name>_root/impl/front-end_tech-stack\""
+
+[[phase_6.steps]]
+id = "IM.2"
+action = "Seed impl/front-end_tech-stack and commit"
+command = "Write README.md + .gitignore + mkdir src/, git -C \"<project-name>_root/impl/front-end_tech-stack\" add -A && git -C \"<project-name>_root/impl/front-end_tech-stack\" commit -m 'chore: impl/front-end_tech-stack — front-end bootstrap'"
+
+# --- Front-end app-shell (orphan — merge target) ---
+
+[[phase_6.steps]]
+id = "IM.3"
+action = "Create impl/front-end_app-shell worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan impl/front-end_app-shell \"<project-name>_root/impl/front-end_app-shell\""
+
+[[phase_6.steps]]
+id = "IM.4"
+action = "Seed impl/front-end_app-shell and commit"
+command = "Write README.md + mkdir src/, git -C \"<project-name>_root/impl/front-end_app-shell\" add -A && git -C \"<project-name>_root/impl/front-end_app-shell\" commit -m 'chore: impl/front-end_app-shell — app shell merge target'"
+
+# --- Front-end feature branches (forks of app-shell) ---
+
+[[phase_6.steps]]
+id = "IM.5"
+action = "Create impl/front-end_typography (fork of app-shell)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch impl/front-end_typography impl/front-end_app-shell && git --git-dir=\"<project-name>_root/.bare\" worktree add impl/front-end_typography \"<project-name>_root/impl/front-end_typography\""
+
+[[phase_6.steps]]
+id = "IM.6"
+action = "Create impl/front-end_color-scheme (fork of app-shell)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch impl/front-end_color-scheme impl/front-end_app-shell && git --git-dir=\"<project-name>_root/.bare\" worktree add impl/front-end_color-scheme \"<project-name>_root/impl/front-end_color-scheme\""
+
+[[phase_6.steps]]
+id = "IM.7"
+action = "Create impl/front-end_navbar (fork of app-shell)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch impl/front-end_navbar impl/front-end_app-shell && git --git-dir=\"<project-name>_root/.bare\" worktree add impl/front-end_navbar \"<project-name>_root/impl/front-end_navbar\""
+
+[[phase_6.steps]]
+id = "IM.8"
+action = "Create impl/front-end_footer (fork of app-shell)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch impl/front-end_footer impl/front-end_app-shell && git --git-dir=\"<project-name>_root/.bare\" worktree add impl/front-end_footer \"<project-name>_root/impl/front-end_footer\""
+
+[[phase_6.steps]]
+id = "IM.9"
+action = "Create impl/front-end_hero (fork of app-shell)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch impl/front-end_hero impl/front-end_app-shell && git --git-dir=\"<project-name>_root/.bare\" worktree add impl/front-end_hero \"<project-name>_root/impl/front-end_hero\""
+
+[[phase_6.steps]]
+id = "IM.10"
+action = "Create impl/front-end_homepage (fork of app-shell)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch impl/front-end_homepage impl/front-end_app-shell && git --git-dir=\"<project-name>_root/.bare\" worktree add impl/front-end_homepage \"<project-name>_root/impl/front-end_homepage\""
+
+# --- Back-end tech-stack (orphan) ---
+
+[[phase_6.steps]]
+id = "IM.11"
+action = "Create impl/back-end_tech-stack worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan impl/back-end_tech-stack \"<project-name>_root/impl/back-end_tech-stack\""
+
+[[phase_6.steps]]
+id = "IM.12"
+action = "Seed impl/back-end_tech-stack and commit"
+command = "Write README.md + .gitignore + mkdir src/, git -C \"<project-name>_root/impl/back-end_tech-stack\" add -A && git -C \"<project-name>_root/impl/back-end_tech-stack\" commit -m 'chore: impl/back-end_tech-stack — back-end bootstrap'"
+
+# =============================================================================
+# PHASE 7 — QA BRANCHES
+# =============================================================================
+
+[phase_7]
+label = "QA Branches (staging, bug-fixes, deployment)"
+order = 7
+
+[[phase_7.steps]]
+id = "QA.1"
+action = "Create staging/v1 (fork of impl/front-end_app-shell)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch staging/v1 impl/front-end_app-shell && git --git-dir=\"<project-name>_root/.bare\" worktree add staging/v1 \"<project-name>_root/staging/v1\""
+
+[[phase_7.steps]]
+id = "QA.2"
+action = "Create bug-fixes/front-end_navbar-nav-fix (fork of impl/front-end_navbar)"
+command = "git --git-dir=\"<project-name>_root/.bare\" branch bug-fixes/front-end_navbar-nav-fix impl/front-end_navbar && git --git-dir=\"<project-name>_root/.bare\" worktree add bug-fixes/front-end_navbar-nav-fix \"<project-name>_root/bug-fixes/front-end_navbar-nav-fix\""
+
+[[phase_7.steps]]
+id = "QA.3"
+action = "Create deployment/v1 worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan deployment/v1 \"<project-name>_root/deployment/v1\""
+
+[[phase_7.steps]]
+id = "QA.4"
+action = "Create deployment/v2 worktree"
+command = "git --git-dir=\"<project-name>_root/.bare\" worktree add --orphan deployment/v2 \"<project-name>_root/deployment/v2\""
+
+# =============================================================================
+# POST-SCAFFOLD SUMMARY
+# =============================================================================
+
+[phase_final]
+label = "Summary"
+action = "Print branch count and worktree list"
+output = """
+Scaffolded <project-name>_root with 31 branches.
+
+Next: cd <project-name>_root && git --git-dir=.bare worktree list
+"""

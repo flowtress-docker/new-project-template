@@ -1,0 +1,102 @@
+# =============================================================================
+# CLI INTERFACE SPECIFICATION — scaffold_2
+# =============================================================================
+# Formal contract for the scaffold_2 command.
+# Installed globally alongside scaffold (v1). Run from any directory.
+# =============================================================================
+
+[command]
+name = "scaffold_2"
+signature = "scaffold_2 <project-name>"
+description = "Creates a new project root folder with bare git repo and 31 branch worktrees."
+
+[command.flags]
+# No flags in v1. Future: --dry-run, --verbose, --output-dir
+
+[command.arguments.project_name]
+required = true
+type = "string"
+validation = "Alphanumeric, hyphens, underscores only. No spaces."
+example = "scaffold_2 my-app"
+
+# -----------------------------------------------------------------------------
+# BEHAVIOR
+# -----------------------------------------------------------------------------
+
+[behavior]
+create_root = "<project-name>_root/"
+init_bare = "git init --bare <project-name>_root/.bare"
+create_worktrees = "31 branches as git worktrees using git --git-dir=.bare worktree add --orphan or git --git-dir=.bare worktree add <branch>"
+seeding = "Minimal starter files per branch type (see directory-scaffold.toml)"
+idempotent = true
+reentrant = "Running scaffold_2 again on existing root dir exits 1 with message"
+
+[behavior.creation_order]
+rule = "All branches created upfront. Order: null → main → planning → standards → specs → testing → implementation → qa"
+reason = "Developer sees full topology immediately. Can work on any branch in any order."
+
+# -----------------------------------------------------------------------------
+# EXIT CODES
+# -----------------------------------------------------------------------------
+
+[exit_codes]
+success = 0
+general_error = 1
+git_unavailable = "Reported as exit 1: 'git is not installed or not in PATH'"
+existing_project = "Reported as exit 1: '<project-name>_root already exists'"
+invalid_name = "Reported as exit 1: 'Invalid project name: <name>. Use alphanumeric, hyphens, underscores.'"
+
+# -----------------------------------------------------------------------------
+# EDGE CASES
+# -----------------------------------------------------------------------------
+
+[[edge_cases]]
+case = "root directory already exists"
+behavior = "Exit 1. Do not overwrite."
+
+[[edge_cases]]
+case = "git not installed"
+behavior = "Exit 1. Print 'git is not installed'."
+
+[[edge_cases]]
+case = "bash not available"
+behavior = "#!/usr/bin/env bash shebang. If /usr/bin/env bash fails, script fails naturally."
+
+[[edge_cases]]
+case = "script run twice on same project"
+behavior = "Detect .bare exists in root. Exit 1: 'Project already scaffolded.'"
+
+[[edge_cases]]
+case = "invalid project name (spaces, special chars)"
+behavior = "Reject with exit 1 and message."
+
+[[edge_cases]]
+case = "project name with leading/trailing whitespace"
+behavior = "Trim whitespace before validation."
+
+[[edge_cases]]
+case = "disk full or permission denied"
+behavior = "Let git worktree commands fail naturally. Exit 1 with git error message."
+
+# -----------------------------------------------------------------------------
+# OUTPUT
+# -----------------------------------------------------------------------------
+
+[output.stdout]
+progress = "Creating branch: <name> [<type>]"
+summary = "Scaffolded <project-name>_root with 31 branches."
+hint = "Next: cd <project-name>_root && git --git-dir=.bare worktree list"
+
+[output.stderr]
+errors = "ERROR: <message>"
+warnings = "WARN: <message>"
+
+# -----------------------------------------------------------------------------
+# PREREQUISITES
+# -----------------------------------------------------------------------------
+
+[prerequisites]
+git = "2.27+"
+bash = "4.0+"
+network = "Not required. Fully offline."
+gh_cli = "Not required."

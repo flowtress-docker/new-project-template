@@ -1,0 +1,148 @@
+# =============================================================================
+# ADVERSARIAL AGENT PROMPT — scaffold_2
+# =============================================================================
+# Pattern: Executor + Verifier
+# Implementer builds scaffold_2 script. Reviewer challenges every decision.
+# =============================================================================
+
+[meta]
+pattern = "Executor + Verifier"
+applies_to = "Implementation"
+version = "2.0.0"
+
+[orchestrator]
+instruction = """
+Set up two parallel agents for this implementation task.
+The verifier is blocked until the executor produces a first draft.
+They iterate until the Reviewer approves all verification checks.
+"""
+
+[task]
+summary = "Build a globally-installable scaffold_2 CLI tool that creates a project root with bare git repo and 31 branch worktrees in one command."
+spec_files = [
+    "specs/plan/scaffold_2_topology.toml",
+    "specs/plan/scaffold_2_execution.toml",
+    "specs/plan/scaffold_2_conventions.toml",
+    "specs/plan/scaffold_2_verification.toml",
+    "specs/scaffold_2_SPEC.toml",
+    "specs/scaffold_2_directory-scaffold.toml",
+    "specs/scaffold_2_seed-templates.toml",
+]
+
+[implementer]
+name = "Implementer"
+role = "Executor — builds the scaffold_2 script"
+blocked_until = "none"
+
+[implementer.responsibilities]
+primary = [
+    "Read specs/plan/scaffold_2_topology.toml for the full 31-branch topology",
+    "Read specs/plan/scaffold_2_execution.toml for the ordered creation phases (0–7)",
+    "Read specs/scaffold_2_SPEC.toml for the CLI contract",
+    "Read specs/scaffold_2_directory-scaffold.toml for exact file/folder output per branch type",
+    "Read specs/scaffold_2_seed-templates.toml for starter file content",
+    "Implement the scaffold_2 script",
+    "Phase 0: Preflight (validate name, check dir doesn't exist, verify git)",
+    "Phase 1: Create null + main branches as worktrees",
+    "Phase 2: Create 01_rough-plan, 02_context, 02_plan as orphan worktrees",
+    "Phase 3: Create ui/impeccable as orphan worktree",
+    "Phase 4: Create 9 spec/* branches as orphan worktrees",
+    "Phase 5: Create 8 testing/* branches as forks of spec/*",
+    "Phase 6: Create impl/front-end_tech-stack (orphan) + impl/front-end_app-shell (orphan) + 6 impl/* forks of app-shell + impl/back-end_tech-stack (orphan)",
+    "Phase 7: Create staging/v1 (fork of app-shell) + bug-fixes + deployment/v1 + v2",
+    "Seed minimal files (README.md, .gitignore, directories) per branch type",
+    "Print summary on success",
+]
+
+[implementer.constraints]
+must_follow = [
+    "specs/plan/scaffold_2_conventions.toml: anti-patterns, naming rules, script conventions",
+    "set -euo pipefail in all scripts",
+    "Explicit paths: every worktree path prefixed with <project-name>_root/",
+    "Idempotent: exit 1 if .bare already exists in root",
+    "Exit 0 on success, exit 1 with stderr message on failure",
+]
+must_not = [
+    "Add features not in spec (no --dry-run, no --verbose, no flags)",
+    "Over-engineer — one command, one job",
+    "Create GitHub repos or push to remotes",
+    "Make the script interactive (no prompts, no confirmations)",
+]
+
+[reviewer]
+name = "Reviewer"
+role = "Verifier — critically analyzes the implementer's output"
+blocked_until = "Implementer produces first draft of scaffold_2 script"
+
+[reviewer.responsibilities]
+primary = [
+    "Wait for implementer to produce scaffold_2 script before starting",
+    "Verify scaffold_2 creates exactly 31 branches",
+    "Verify null branch is completely empty (0 tracked files, 1 empty commit)",
+    "Verify 20 orphan branches have no parent (git merge-base returns nothing)",
+    "Verify 8 testing branches are children of their spec parents",
+    "Verify 6 impl/* branches are children of impl/front-end_app-shell",
+    "Verify impl/front-end_app-shell is orphan",
+    "Verify staging/v1 is child of impl/front-end_app-shell",
+    "Verify impl/front-end_tech-stack and impl/back-end_tech-stack are orphans",
+    "Verify testing/front-end_navbar forks from spec/front-end_navbar",
+    "Verify bug-fixes/front-end_navbar-nav-fix forks from impl/front-end_navbar",
+    "Verify deployment/v1 and deployment/v2 are orphans",
+    "Verify all non-null branches have README.md",
+    "Verify spec branches contain no implementation files",
+    "Challenge idempotency: run scaffold_2 twice on same project — second run must exit 1",
+    "Challenge edge cases: invalid project name, existing directory, git not in PATH",
+    "Verify all V.1–V.30 checks from specs/plan/scaffold_2_verification.toml",
+    "Flag issues and send corrections back to implementer",
+    "Verify fixes in subsequent review rounds",
+]
+
+[reviewer.scrutiny_areas]
+branch_count = "Exactly 31 branches. No more, no less."
+orphan_integrity = "20 orphans must have no merge-base with main."
+fork_integrity = "11 forks must have correct parent via merge-base --is-ancestor."
+null_emptiness = "0 tracked files, 1 empty commit."
+seed_content = "README.md on every non-null branch. .gitignore + src/ on tech-stack branches."
+script_safety = "set -euo pipefail. No unquoted variables. No silent failures."
+path_explicitness = "Every worktree path uses explicit <project-name>_root/ prefix."
+idempotency = "Re-run exits 1 with clear message."
+error_handling = "Invalid name, dir exists, no git — all exit 1 with stderr message."
+no_scope_creep = "No flags, no prompts, no remote operations, no application code."
+
+[iteration]
+max_rounds = 3
+protocol = """
+1. Implementer produces scaffold_2 script
+2. Reviewer audits against scrutiny areas and verification.toml
+3. Reviewer sends structured review: {file:line, issue, severity, suggested_fix}
+4. Implementer addresses all issues or counters if reviewer is wrong
+5. Reviewer re-audits until all issues resolved
+6. When Reviewer approves, task is complete
+"""
+
+[[iteration.severity_levels]]
+level = "CRITICAL"
+meaning = "Wrong branch count, broken fork chain, script exits silently on error"
+action = "Must fix before reviewer approves"
+
+[[iteration.severity_levels]]
+level = "MAJOR"
+meaning = "Missing README on branch, wrong seed content, edge case not handled"
+action = "Must fix before reviewer approves"
+
+[[iteration.severity_levels]]
+level = "MINOR"
+meaning = "Style inconsistency, message wording, minor improvements"
+action = "Fix if time allows"
+
+[completion]
+statement = "Task is complete only when the Reviewer approves."
+requirements = [
+    "All V.1–V.30 checks from specs/plan/scaffold_2_verification.toml pass",
+    "Reviewer has no open CRITICAL or MAJOR issues",
+    "scaffold_2 <valid-name> creates 31 branches with correct fork relationships",
+    "scaffold_2 <valid-name> seeds correct files per branch type",
+    "scaffold_2 <existing-name> exits 1",
+    "scaffold_2 'invalid name' exits 1",
+    "Script is idempotent and follows conventions",
+]

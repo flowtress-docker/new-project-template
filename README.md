@@ -46,6 +46,6 @@ starting-prompt/
 
 **Output**: `<project-name>_root/` with `.bare` + 31 branch worktrees
 
-**Branches**: 1 null, 22 orphans, 8 forks across 6 phases
+**Branches**: 1 null, 22 orphans, 9 forks across 6 phases
 
 **Success**: Reviewer approves. All 28 verification checks pass. Script exits 0.

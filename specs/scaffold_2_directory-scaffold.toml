@@ -1,0 +1,117 @@
+# =============================================================================
+# DIRECTORY SCAFFOLD — scaffold_2
+# =============================================================================
+# Exact folder/file output for each branch type when scaffold_2 runs.
+# =============================================================================
+
+[utility.null]
+branch = "null"
+type = "orphan"
+directories = []
+files = []
+notes = "Completely empty. No files, no README. Purpose: duplication source."
+
+[utility.main]
+branch = "main"
+type = "orphan"
+directories = []
+files = ["README.md"]
+notes = "Placeholder only."
+
+[planning."01_rough-plan"]
+branch = "01_rough-plan"
+type = "orphan"
+directories = []
+files = ["README.md"]
+readme_content = "# 01 Rough Plan\n\nBrainstorming space for rough idea, MVP scope, and future releases."
+
+[planning."02_context"]
+branch = "02_context"
+type = "orphan"
+directories = []
+files = ["README.md", "CONTEXT.md"]
+readme_content = "# 02 Context\n\nPrecise scope setting. Uses flowtress-docker/context for interview Q&A and skill gathering."
+
+[planning."02_plan"]
+branch = "02_plan"
+type = "orphan"
+directories = ["plan/"]
+files = ["README.md"]
+readme_content = "# 02 Plan\n\nDetailed MVP plan. Demarcated into subfolders with .md + .toml formats."
+
+[standards."ui/impeccable"]
+branch = "ui/impeccable"
+type = "orphan"
+directories = []
+files = ["README.md"]
+readme_content = "# UI Standards\n\nSource: https://github.com/pbakaus/impeccable\n\nAnti-patterns and standards for all UI regardless of platform and tech-stack."
+
+[spec.star]
+pattern = "spec/*"
+type = "orphan"
+directories = ["spec/"]
+files = ["README.md"]
+readme_content = "# <Feature> Spec\n\nSpecification for <feature>. Defines code behavior, branding, UX copy, anti-patterns."
+notes = "No implementation code on spec branches. Pure specification."
+
+[testing.star]
+pattern = "testing/*"
+type = "fork"
+directories = []
+files = ["README.md"]
+readme_content = "# Tests: <feature>\n\nSpec-driven TDD. Fork of spec/<feature>. Merged into impl/<feature>."
+notes = "Testing branches are forks of their corresponding spec/* branches."
+
+[impl.orphan_tech_stack]
+pattern = "impl/*-tech-stack"
+type = "orphan"
+directories = ["src/"]
+files = ["README.md", ".gitignore"]
+readme_content = "# <Tech> Implementation\n\nBoilerplate to confirm dependencies work together. Agents should not customize this branch."
+notes = "Place to resolve dependency conflicts before implementation. Should run on localhost."
+
+[impl.app_shell]
+pattern = "impl/front-end_app-shell"
+type = "orphan"
+directories = ["src/"]
+files = ["README.md"]
+readme_content = "# App Shell Implementation\n\nNavbar+footer combined. Merge target for navbar + footer. Fork parent for most impl branches."
+notes = "impl/front-end_navbar and impl/front-end_footer merge into this branch."
+
+[impl.fork_chain]
+pattern = "impl/front-end_<feature>"
+type = "fork"
+directories = ["src/"]
+files = ["README.md"]
+readme_content = "# <Feature> Implementation\n\nForked from impl/front-end_app-shell. Specs from spec/<feature>."
+notes = "Most impl/front-end_* branches fork from app-shell. Influenced by ui/impeccable."
+
+[impl.back_end_orphan]
+pattern = "impl/back-end_<feature>"
+type = "orphan"
+directories = ["src/"]
+files = ["README.md"]
+readme_content = "# Back-End: <feature>\n\n\nImplementation of <feature>. Standalone orphan."
+notes = "Back-end impl branches are all orphans. No fork chain."
+
+[qa.staging]
+pattern = "staging/*"
+type = "fork"
+directories = []
+files = ["README.md"]
+readme_content = "# Staging: <version>\n\nIntegration staging. Fork of impl/front-end_app-shell. Receives merges from impl/* branches."
+notes = "staging/v1 forks from impl/front-end_app-shell."
+
+[qa.bug_fixes]
+pattern = "bug-fixes/*"
+type = "fork"
+directories = []
+files = ["README.md"]
+readme_content = "# Bug Fix: <description>\n\nForked from impl/<feature> or staging/<version>. Fixes identified issues."
+
+[qa.deployment]
+pattern = "deployment/*"
+type = "orphan"
+directories = []
+files = ["README.md"]
+readme_content = "# Deployment: <version>\n\n\nProduction-ready code. Merged from staging/* + bug-fixes/*."

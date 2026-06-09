@@ -1,0 +1,418 @@
+# =============================================================================
+# BRANCH TOPOLOGY SPECIFICATION — scaffold_2
+# =============================================================================
+# Defines all branches, fork relationships, and naming conventions.
+# =============================================================================
+
+[meta]
+version = "2.0.0"
+script_name = "scaffold_2"
+
+# =============================================================================
+# PHASE 0 — UTILITY
+# =============================================================================
+
+[branches.null]
+name = "null"
+type = "orphan"
+parent = "none"
+purpose = "Empty branch for duplicating (not forking) when developer wants a fresh starting point."
+seeds = []
+commit_message = "chore: null branch — duplication source"
+
+[branches.main]
+name = "main"
+type = "orphan"
+parent = "none"
+purpose = "Development root. Placeholder README only."
+seeds = ["README.md"]
+commit_message = "chore: initial placeholder commit"
+
+# =============================================================================
+# PHASE 1 — PLANNING (3 orphans)
+# =============================================================================
+
+[branches."01_rough-plan"]
+name = "01_rough-plan"
+type = "orphan"
+parent = "none"
+purpose = "Brainstorming: rough idea, MVP scope, future releases."
+feeds = "02_context"
+seeds = ["README.md"]
+commit_message = "chore: 01_rough-plan — brainstorming space"
+
+[branches."02_context"]
+name = "02_context"
+type = "orphan"
+parent = "none"
+purpose = "Precise scope setting using flowtress-docker/context resources."
+consumes = "01_rough-plan"
+feeds = "02_plan"
+seeds = ["README.md", "CONTEXT.md"]
+commit_message = "chore: 02_context — scope setting"
+
+[branches."02_plan"]
+name = "02_plan"
+type = "orphan"
+parent = "none"
+purpose = "Detailed MVP plan demarcated in subfolders with .md + .toml."
+consumes = "02_context"
+feeds = "spec/* branches"
+seeds = ["README.md", "plan/"]
+commit_message = "chore: 02_plan — detailed planning"
+
+# =============================================================================
+# PHASE 2 — STANDARDS (1 orphan)
+# =============================================================================
+
+[branches."ui/impeccable"]
+name = "ui/impeccable"
+type = "orphan"
+parent = "none"
+purpose = "UI standards and anti-patterns. Source: pbakaus/impeccable."
+external_source = "https://github.com/pbakaus/impeccable"
+seeds = ["README.md"]
+commit_message = "chore: ui/impeccable — UI standards"
+
+# =============================================================================
+# PHASE 3 — SPECS (9 orphans)
+# =============================================================================
+
+[branches."spec/front-end_tech-stack"]
+name = "spec/front-end_tech-stack"
+type = "orphan"
+parent = "none"
+purpose = "Front-end technology decisions: frameworks, build tools, dependencies."
+feeds = "testing/front-end_tech-stack"
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_typography"]
+name = "spec/front-end_typography"
+type = "orphan"
+parent = "none"
+purpose = "Typography spec: font families, sizes, weights, combinations, heading standards."
+feeds = "testing/front-end_typography"
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_color-scheme"]
+name = "spec/front-end_color-scheme"
+type = "orphan"
+parent = "none"
+purpose = "Color scheme spec: brand colors, variations, WCAG AA contrast."
+feeds = "testing/front-end_color-scheme"
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_navbar"]
+name = "spec/front-end_navbar"
+type = "orphan"
+parent = "none"
+purpose = "Navbar spec: structure, UX copy, branding, anti-patterns."
+feeds = "testing/front-end_navbar"
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_footer"]
+name = "spec/front-end_footer"
+type = "orphan"
+parent = "none"
+purpose = "Footer spec: structure, UX copy, branding, anti-patterns."
+feeds = "testing/front-end_footer"
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_app-shell"]
+name = "spec/front-end_app-shell"
+type = "orphan"
+parent = "none"
+purpose = "App shell spec: navbar+footer combined layout. Starting point for pages."
+feeds = "testing/front-end_app-shell"
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_hero"]
+name = "spec/front-end_hero"
+type = "orphan"
+parent = "none"
+purpose = "Hero section spec: layout, content strategy, CTAs."
+feeds = "testing/front-end_hero"
+seeds = ["README.md", "spec/"]
+
+[branches."spec/front-end_homepage"]
+name = "spec/front-end_homepage"
+type = "orphan"
+parent = "none"
+purpose = "Homepage spec: page composition, sections, content hierarchy."
+feeds = "testing/front-end_homepage"
+seeds = ["README.md", "spec/"]
+
+[branches."spec/back-end_tech-stack"]
+name = "spec/back-end_tech-stack"
+type = "orphan"
+parent = "none"
+purpose = "Back-end technology decisions: runtime, framework, database."
+feeds = "testing/back-end_tech-stack"
+seeds = ["README.md", "spec/"]
+
+# =============================================================================
+# PHASE 4 — TESTING (8 forks of spec)
+# =============================================================================
+
+[branches."testing/front-end_typography"]
+name = "testing/front-end_typography"
+type = "fork"
+parent = "spec/front-end_typography"
+purpose = "Spec-driven TDD for typography. Fork of spec, merged into impl."
+feeds = "impl/front-end_typography"
+seeds = ["README.md"]
+
+[branches."testing/front-end_color-scheme"]
+name = "testing/front-end_color-scheme"
+type = "fork"
+parent = "spec/front-end_color-scheme"
+purpose = "Spec-driven TDD for color scheme. Fork of spec, merged into impl."
+feeds = "impl/front-end_color-scheme"
+seeds = ["README.md"]
+
+[branches."testing/front-end_navbar"]
+name = "testing/front-end_navbar"
+type = "fork"
+parent = "spec/front-end_navbar"
+purpose = "Spec-driven TDD for navbar. Fork of spec, merged into impl."
+feeds = "impl/front-end_navbar"
+seeds = ["README.md"]
+
+[branches."testing/front-end_footer"]
+name = "testing/front-end_footer"
+type = "fork"
+parent = "spec/front-end_footer"
+purpose = "Spec-driven TDD for footer. Fork of spec, merged into impl."
+feeds = "impl/front-end_footer"
+seeds = ["README.md"]
+
+[branches."testing/front-end_app-shell"]
+name = "testing/front-end_app-shell"
+type = "fork"
+parent = "spec/front-end_app-shell"
+purpose = "Spec-driven TDD for app-shell. Fork of spec, merged into impl. App-shell testing loop starts after navbar + footer are merged."
+feeds = "impl/front-end_app-shell"
+seeds = ["README.md"]
+
+[branches."testing/front-end_hero"]
+name = "testing/front-end_hero"
+type = "fork"
+parent = "spec/front-end_hero"
+purpose = "Spec-driven TDD for hero. Fork of spec, merged into impl."
+feeds = "impl/front-end_hero"
+seeds = ["README.md"]
+
+[branches."testing/front-end_homepage"]
+name = "testing/front-end_homepage"
+type = "fork"
+parent = "spec/front-end_homepage"
+purpose = "Spec-driven TDD for homepage. Fork of spec, merged into impl."
+feeds = "impl/front-end_homepage"
+seeds = ["README.md"]
+
+[branches."testing/back-end_tech-stack"]
+name = "testing/back-end_tech-stack"
+type = "fork"
+parent = "spec/back-end_tech-stack"
+purpose = "Spec-driven TDD for back-end tech-stack. Fork of spec, merged into impl."
+feeds = "impl/back-end_tech-stack"
+seeds = ["README.md"]
+
+# =============================================================================
+# PHASE 5 — IMPLEMENTATION
+# =============================================================================
+
+[branches."impl/front-end_tech-stack"]
+name = "impl/front-end_tech-stack"
+type = "orphan"
+parent = "none"
+purpose = "Front-end boilerplate. Confirm npm packages and dependencies work together. Agents should not customize. Place to resolve dependency conflicts."
+feeds = "staging/v1"
+seeds = ["README.md", ".gitignore", "src/"]
+commit_message = "chore: impl/front-end_tech-stack — front-end bootstrap"
+
+[branches."impl/front-end_app-shell"]
+name = "impl/front-end_app-shell"
+type = "orphan"
+parent = "none"
+purpose = "App shell: navbar+footer combined. Merge target for navbar + footer. Fork parent for most impl branches. Fork parent for staging/v1."
+feeds = "staging/v1"
+seeds = ["README.md", "src/"]
+commit_message = "chore: impl/front-end_app-shell — app shell merge target"
+
+[branches."impl/front-end_typography"]
+name = "impl/front-end_typography"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Typography implementation. Fork of app-shell. Influenced by ui/impeccable."
+feeds = "staging/v1"
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_color-scheme"]
+name = "impl/front-end_color-scheme"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Color scheme implementation. Fork of app-shell. Influenced by ui/impeccable."
+feeds = "staging/v1"
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_navbar"]
+name = "impl/front-end_navbar"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Navbar implementation. Fork of app-shell. Specs from spec/front-end_navbar."
+feeds = "staging/v1"
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_footer"]
+name = "impl/front-end_footer"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Footer implementation. Fork of app-shell. Specs from spec/front-end_footer."
+feeds = "staging/v1"
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_hero"]
+name = "impl/front-end_hero"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Hero section. Fork of app-shell. Specs from spec/front-end_hero."
+feeds = "staging/v1"
+seeds = ["README.md", "src/"]
+
+[branches."impl/front-end_homepage"]
+name = "impl/front-end_homepage"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Homepage. Fork of app-shell. Specs from spec/front-end_homepage."
+feeds = "staging/v1"
+seeds = ["README.md", "src/"]
+
+[branches."impl/back-end_tech-stack"]
+name = "impl/back-end_tech-stack"
+type = "orphan"
+parent = "none"
+purpose = "Back-end boilerplate. Confirm runtime and dependencies work together. Agents should not customize."
+feeds = "staging/v1"
+seeds = ["README.md", ".gitignore", "src/"]
+commit_message = "chore: impl/back-end_tech-stack — back-end bootstrap"
+
+# =============================================================================
+# PHASE 6 — QA
+# =============================================================================
+
+[branches."staging/v1"]
+name = "staging/v1"
+type = "fork"
+parent = "impl/front-end_app-shell"
+purpose = "Integration staging. Fork of app-shell. Receives merges from impl/* branches. Verifies front-end + back-end integration."
+feeds = "deployment/v1"
+seeds = ["README.md"]
+
+[branches."bug-fixes/front-end_navbar-nav-fix"]
+name = "bug-fixes/front-end_navbar-nav-fix"
+type = "fork"
+parent = "impl/front-end_navbar"
+purpose = "Bug fixes for navbar. Fork of impl/front-end_navbar or staging/v1."
+feeds = "staging/v1"
+seeds = ["README.md"]
+
+[branches."deployment/v1"]
+name = "deployment/v1"
+type = "orphan"
+parent = "none"
+purpose = "Production-ready v1. Merges from staging/v1 + bug-fixes/*."
+seeds = ["README.md"]
+
+[branches."deployment/v2"]
+name = "deployment/v2"
+type = "orphan"
+parent = "none"
+purpose = "Production-ready v2."
+seeds = ["README.md"]
+
+# =============================================================================
+# FORK CHAINS
+# =============================================================================
+
+[[fork_chains]]
+chain = "testing-from-spec"
+branches = [
+    "testing/front-end_typography",
+    "testing/front-end_color-scheme",
+    "testing/front-end_navbar",
+    "testing/front-end_footer",
+    "testing/front-end_app-shell",
+    "testing/front-end_hero",
+    "testing/front-end_homepage",
+    "testing/back-end_tech-stack",
+]
+
+[[fork_chains]]
+chain = "impl-from-app-shell"
+branches = [
+    "impl/front-end_typography",
+    "impl/front-end_color-scheme",
+    "impl/front-end_navbar",
+    "impl/front-end_footer",
+    "impl/front-end_hero",
+    "impl/front-end_homepage",
+]
+
+[[fork_chains]]
+chain = "staging-from-app-shell"
+branches = ["staging/v1"]
+
+# =============================================================================
+# ORPHAN BRANCHES
+# =============================================================================
+
+[[orphans]]
+name = "null"
+[[orphans]]
+name = "main"
+[[orphans]]
+name = "01_rough-plan"
+[[orphans]]
+name = "02_context"
+[[orphans]]
+name = "02_plan"
+[[orphans]]
+name = "ui/impeccable"
+[[orphans]]
+name = "spec/front-end_tech-stack"
+[[orphans]]
+name = "spec/front-end_typography"
+[[orphans]]
+name = "spec/front-end_color-scheme"
+[[orphans]]
+name = "spec/front-end_navbar"
+[[orphans]]
+name = "spec/front-end_footer"
+[[orphans]]
+name = "spec/front-end_app-shell"
+[[orphans]]
+name = "spec/front-end_hero"
+[[orphans]]
+name = "spec/front-end_homepage"
+[[orphans]]
+name = "spec/back-end_tech-stack"
+[[orphans]]
+name = "impl/front-end_tech-stack"
+[[orphans]]
+name = "impl/front-end_app-shell"
+[[orphans]]
+name = "impl/back-end_tech-stack"
+[[orphans]]
+name = "deployment/v1"
+[[orphans]]
+name = "deployment/v2"
+
+# =============================================================================
+# BRANCH COUNTS
+# =============================================================================
+
+[counts]
+total = 31
+orphans = 20
+forks = 11

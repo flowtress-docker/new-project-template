@@ -1,0 +1,198 @@
+# =============================================================================
+# SEED TEMPLATES — scaffold_2
+# =============================================================================
+# Minimal starter file content per branch type.
+# =============================================================================
+
+[content.README_main]
+file = "main/README.md"
+body = """
+# <project-name>
+
+Development repository. See `git --git-dir=.bare worktree list` for all branches.
+"""
+
+[content.README_rough_plan]
+file = "01_rough-plan/README.md"
+body = """
+# 01 Rough Plan
+
+Brainstorming space for:
+- Rough project idea
+- MVP scope
+- Future releases
+
+Agent: Use interview-style Q&A to gather context from developer.
+"""
+
+[content.README_context]
+file = "02_context/README.md"
+body = """
+# 02 Context
+
+Precise scope setting. Uses resources from:
+- https://github.com/flowtress-docker/context
+
+Gathers: project context, relevant skills, interview Q&A results.
+Demarcates into plans and specs. No implementation.
+"""
+
+[content.README_plan]
+file = "02_plan/README.md"
+body = """
+# 02 Plan
+
+Detailed MVP plan. Content fed from 02_context.
+
+Subfolders:
+- plan/ — demarcated plans per feature area (.md + .toml + agent-optimized formats)
+"""
+
+[content.README_ui]
+file = "ui/impeccable/README.md"
+body = """
+# UI Standards — Impeccable
+
+Source: https://github.com/pbakaus/impeccable
+
+Anti-patterns and standards for all UI:
+- Typography
+- Color schemes
+- Layout principles
+- Accessibility (WCAG)
+- Responsive design
+
+Used by: all impl/front-end_* branches.
+"""
+
+[content.README_spec]
+file = "spec/<feature>/README.md"
+body = """
+# Spec: <feature>
+
+Specification for <feature>.
+
+Contents:
+- Code behavior definition
+- Branding requirements
+- UX copy
+- Anti-patterns to avoid
+- Visualizations (if needed for approval)
+
+No implementation code on this branch.
+"""
+
+[content.README_testing]
+file = "testing/<feature>/README.md"
+body = """
+# Tests: <feature>
+
+Spec-driven TDD. Fork of spec/<feature>.
+Merged into impl/<feature> after approval.
+"""
+
+[content.README_impl_tech_stack]
+file = "impl/<tech>/README.md"
+body = """
+# <Tech> Implementation
+
+Boilerplate to confirm dependencies work together.
+- Runs on localhost
+- Agents should NOT customize this branch
+- Resolve dependency conflicts here before implementation begins
+"""
+
+[content.README_impl_app_shell]
+file = "impl/front-end_app-shell/README.md"
+body = """
+# App Shell Implementation
+
+Navbar+footer combined. Merge target for navbar + footer.
+Fork parent for most impl/* branches and staging/v1.
+"""
+
+[content.README_impl_feature]
+file = "impl/<feature>/README.md"
+body = """
+# <Feature> Implementation
+
+Forked from impl/front-end_app-shell. Specs from spec/<feature>.
+UI Standards: ui/impeccable
+"""
+
+[content.README_impl_backend]
+file = "impl/back-end_<feature>/README.md"
+body = """
+# Back-End: <feature>
+
+Standalone implementation. Info from spec/back-end_tech-stack.
+"""
+
+[content.README_staging]
+file = "staging/<version>/README.md"
+body = """
+# Staging: <version>
+
+Integration staging. Fork of impl/front-end_app-shell.
+Receives merges from impl/* branches.
+"""
+
+[content.README_bug_fixes]
+file = "bug-fixes/<description>/README.md"
+body = """
+# Bug Fix: <description>
+
+Forked from impl/<feature> or staging/<version>.
+Fixes identified issues.
+"""
+
+[content.README_deployment]
+file = "deployment/<version>/README.md"
+body = """
+# Deployment: <version>
+
+Production-ready code. Merged from staging/* + bug-fixes/*.
+"""
+
+[content.gitignore]
+file = ".gitignore"
+body = """
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+"""
+
+[content.CONTEXT]
+file = "02_context/CONTEXT.md"
+body = """
+# Project Context
+
+## Interview Q&A
+
+<!-- Agent: document interview results here -->
+
+## Skills Required
+
+<!-- Agent: list skills gathered from flowtress-docker/context -->
+
+## Decisions
+
+<!-- Key decisions made during context gathering -->
+
+## Open Questions
+
+<!-- Unresolved items for next session -->
+"""
